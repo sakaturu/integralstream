@@ -1,0 +1,5 @@
+{
+  "name": "IntegralStream",
+  "description": "A high-end cinematic tool to generate and curate AI-powered video playlists using Gemini Veo. Create stunning visuals from text prompts and organize them into a seamless playback experience.",
+  "requestFramePermissions": []
+}
