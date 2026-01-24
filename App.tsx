@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { VideoItem, VideoCategory, Review } from './types';
 import VideoPlayer from './components/VideoPlayer';
@@ -11,7 +12,6 @@ const CATEGORIES_KEY = 'integralstream_categories_v2';
 const SIDEBAR_WIDTH_KEY = 'integralstream_sidebar_width';
 const AUTH_KEY = 'integralstream_auth_session';
 
-// CHANGE PASSWORD HERE
 const ADMIN_PASSWORD = 'ADMIN';
 
 const DEFAULT_CATEGORIES: VideoCategory[] = [
@@ -37,7 +37,8 @@ const App: React.FC = () => {
     } catch (e) {
       console.warn("Vault recovery failed:", e);
     }
-    return [];
+    // User requested no videos in library initially
+    return []; 
   });
 
   const [categories, setCategories] = useState<VideoCategory[]>(() => {
@@ -189,13 +190,6 @@ const App: React.FC = () => {
     }
   }, [currentVideoId, filteredVideos, checkAuth]);
 
-  const handleClearAll = useCallback(() => {
-    if (!checkAuth()) return;
-    setVideos([]);
-    setCurrentVideoId(undefined);
-    setIsPlaying(false);
-  }, [checkAuth]);
-
   const handleMoveVideo = useCallback((id: string, direction: 'up' | 'down') => {
     if (!checkAuth()) return;
     setVideos(prev => {
@@ -315,10 +309,22 @@ const App: React.FC = () => {
 
   const handleRemoveCategory = useCallback((name: string) => {
     if (!checkAuth()) return;
-    setCategories(prev => prev.filter(c => c !== name));
-    setVideos(prev => prev.map(v => v.category === name ? { ...v, category: 'Other' } : v));
+    
+    // Safety check: Don't allow deleting the last remaining category
+    if (categories.length <= 1) {
+      alert("Terminal requires at least one active category to host signals.");
+      return;
+    }
+
+    const remaining = categories.filter(c => c !== name);
+    setCategories(remaining);
+    
+    // Signal Migration: Migrate videos to the first remaining category
+    const fallback = remaining[0];
+    setVideos(prev => prev.map(v => v.category === name ? { ...v, category: fallback } : v));
+    
     if (activeTab === name) setActiveTab('All');
-  }, [activeTab, checkAuth]);
+  }, [activeTab, checkAuth, categories]);
 
   const toggleFullscreen = () => {
     const container = document.getElementById('v-player-root');
@@ -376,7 +382,7 @@ const App: React.FC = () => {
       <header className="glass sticky top-0 z-[60] border-b border-white/10">
         <div className="max-w-[1800px] mx-auto px-6 h-16 flex items-center justify-between">
           <div className="flex items-center gap-4 group/header cursor-pointer" data-tooltip="IntegralStream Home">
-            <div className="w-11 h-11 bg-white rounded-full flex items-center justify-center border border-white/10 shadow-[0_0_20px_rgba(255,255,255,0.15)] transition-all duration-700 group-hover/header:scale-110 group-hover/header:animate-[spin_2s_linear_infinite] p-1.5">
+            <div className="w-11 h-11 bg-white rounded-full flex items-center justify-center border border-white/10 shadow-[0_0_20px_rgba(255,255,255,0.15)] transition-all duration-700 group-hover/header:scale-110 group-hover/header:animate-[spin_3s_linear_infinite] p-1.5">
                <svg viewBox="0 0 100 100" className="w-full h-full">
                   <path d="M50 5 C60 20 60 35 50 50 C40 35 40 20 50 5" fill="#1d4ed8" />
                   <path d="M15 30 C20 40 35 50 45 45 C40 35 25 20 15 30" fill="#dc2626" />
@@ -395,9 +401,9 @@ const App: React.FC = () => {
             </div>
           </div>
           {isAuthorized ? (
-            <button onClick={handleLogout} data-tooltip="End Secure Session" className="text-[10px] font-black text-slate-500 hover:text-white uppercase tracking-widest transition-all">Disconnect</button>
+            <button onClick={handleLogout} className="text-[10px] font-black text-slate-500 hover:text-white uppercase tracking-widest transition-all">Disconnect</button>
           ) : (
-            <button onClick={() => setShowLoginOverlay(true)} data-tooltip="Access Admin Panel" className="text-[10px] font-black text-blue-500 hover:text-white uppercase tracking-widest transition-all">Admin Entry</button>
+            <button onClick={() => setShowLoginOverlay(true)} className="text-[10px] font-black text-blue-500 hover:text-white uppercase tracking-widest transition-all">Admin Entry</button>
           )}
         </div>
       </header>
@@ -414,12 +420,12 @@ const App: React.FC = () => {
               currentVideo={currentVideo} 
               onSelect={(v) => handleSelectVideo(v)} 
               onRemove={handleRemoveVideo}
-              onClearAll={handleClearAll}
               onToggleFavorite={handleToggleFavorite} 
               onMoveVideo={handleMoveVideo} 
               onAddRandom={handleAddSurprise} 
               onAddManualVideo={handleAddManualVideo}
               onAddCategory={handleAddCategory}
+              onRemoveCategory={handleRemoveCategory}
               activeTab={activeTab} 
               setActiveTab={setActiveTab} 
               onHoverTab={setHoveredTab}
@@ -430,7 +436,6 @@ const App: React.FC = () => {
           
           <div 
             onMouseDown={startResizing}
-            data-tooltip="Resize Terminal"
             className={`absolute -right-5 top-0 bottom-0 w-10 flex items-center justify-center cursor-col-resize z-50 transition-all ${isResizing ? 'opacity-100' : 'opacity-0 group-hover/aside:opacity-100'}`}
           >
             <div className={`w-1 h-20 rounded-full transition-all duration-300 ${isResizing ? 'bg-blue-500 scale-y-110 shadow-[0_0_15px_#3b82f6]' : 'bg-white/20 hover:bg-white/40'}`}></div>
@@ -457,14 +462,14 @@ const App: React.FC = () => {
             <>
               <div className="glass p-5 rounded-[2.5rem] animate-fade-in relative shadow-2xl ring-1 ring-white/10">
                 <div className="flex items-center gap-2 overflow-x-auto no-scrollbar py-1 pr-4">
-                  <span className={`text-[10px] font-black uppercase tracking-[0.2em] px-3 py-2 rounded-xl border whitespace-nowrap shrink-0 transition-colors ${getCategoryColorClasses(currentVideo.category).border} ${getCategoryColorClasses(currentVideo.category).text} ${getCategoryColorClasses(currentVideo.category).bg}`} data-tooltip={`Category: ${currentVideo.category}`}>{currentVideo.category}</span>
+                  <span className={`text-[10px] font-black uppercase tracking-[0.2em] px-3 py-2 rounded-xl border whitespace-nowrap shrink-0 transition-colors ${getCategoryColorClasses(currentVideo.category).border} ${getCategoryColorClasses(currentVideo.category).text} ${getCategoryColorClasses(currentVideo.category).bg}`}>{currentVideo.category}</span>
                   <div className="flex items-center gap-2.5 px-3 py-2 bg-white/5 border border-white/10 rounded-xl shrink-0">
-                    <div className="flex items-center gap-2 text-[10px] font-black text-amber-400 uppercase tracking-widest" data-tooltip="Total Impressions">VIEWS:: {currentVideo.viewCount.toLocaleString()}</div>
-                    <div className="flex items-center gap-2 text-[10px] font-black text-blue-500 uppercase tracking-widest border-l border-white/10 pl-3" data-tooltip="Signal Approval Count">LIKES:: {currentVideo.likeCount.toLocaleString()}</div>
+                    <div className="flex items-center gap-2 text-[10px] font-black text-amber-400 uppercase tracking-widest">VIEWS:: {currentVideo.viewCount.toLocaleString()}</div>
+                    <div className="flex items-center gap-2 text-[10px] font-black text-blue-500 uppercase tracking-widest border-l border-white/10 pl-3">LIKES:: {currentVideo.likeCount.toLocaleString()}</div>
                   </div>
-                  <button onClick={toggleReviews} data-tooltip="Read Neural Impressions" className={`flex items-center gap-2 px-3 py-2 rounded-xl border transition-all shrink-0 ${isReviewOpen ? 'bg-purple-600 border-purple-400 text-white shadow-[0_0_15px_rgba(168,85,247,0.3)]' : 'border-white/10 bg-white/5 hover:bg-white/10 text-slate-300'}`}><span className="text-[10px] font-black uppercase tracking-widest">REVIEWS</span></button>
-                  <button onClick={toggleQuickVault} data-tooltip="Open Secure Collection" className={`flex items-center gap-2 px-4 py-2 rounded-xl border transition-all shrink-0 ${showQuickVault ? 'bg-red-600 border-red-400 text-white shadow-[0_0_15px_rgba(239,68,68,0.3)]' : 'border-white/10 bg-white/5 hover:bg-white/10 text-slate-300'}`}><span className="text-[10px] font-black uppercase tracking-widest">VAULT</span></button>
-                  <button onClick={toggleFullscreen} data-tooltip="Enter Cinema Mode" className="ml-auto px-5 py-2 rounded-xl border border-white/10 text-[10px] font-black uppercase text-slate-400 hover:text-white hover:bg-white/10 transition-all shrink-0 whitespace-nowrap min-w-fit">{isFullscreen ? 'COMPRESS' : 'FULLSCREEN'}</button>
+                  <button onClick={toggleReviews} className={`flex items-center gap-2 px-3 py-2 rounded-xl border transition-all shrink-0 ${isReviewOpen ? 'bg-purple-600 border-purple-400 text-white shadow-[0_0_15px_rgba(168,85,247,0.3)]' : 'border-white/10 bg-white/5 hover:bg-white/10 text-slate-300'}`}><span className="text-[10px] font-black uppercase tracking-widest">REVIEWS</span></button>
+                  <button onClick={toggleQuickVault} className={`flex items-center gap-2 px-4 py-2 rounded-xl border transition-all shrink-0 ${showQuickVault ? 'bg-red-600 border-red-400 text-white shadow-[0_0_15px_rgba(239,68,68,0.3)]' : 'border-white/10 bg-white/5 hover:bg-white/10 text-slate-300'}`}><span className="text-[10px] font-black uppercase tracking-widest">VAULT</span></button>
+                  <button onClick={toggleFullscreen} className="ml-auto px-5 py-2 rounded-xl border border-white/10 text-[10px] font-black uppercase text-slate-400 hover:text-white hover:bg-white/10 transition-all shrink-0 whitespace-nowrap min-w-fit">{isFullscreen ? 'COMPRESS' : 'FULLSCREEN'}</button>
                 </div>
               </div>
               {showQuickVault && (
@@ -473,9 +478,9 @@ const App: React.FC = () => {
                     <div className="flex items-center gap-4">
                        <div className="w-1.5 h-1.5 rounded-full bg-red-500 shadow-[0_0_8px_#ef4444]"></div>
                        <h3 className="text-[10px] font-black text-red-400 uppercase tracking-[0.4em]">Playlist Vault</h3>
-                       <button onClick={handleShuffleVault} data-tooltip="Randomize Vault Playback" className="ml-2 flex items-center gap-1.5 px-3 py-1 rounded-lg bg-red-600/10 border border-red-500/20 text-red-500 text-[8px] font-black uppercase tracking-widest hover:bg-red-600 hover:text-white transition-all active:scale-95"><i className="fa-solid fa-shuffle"></i> SHUFFLE VAULT</button>
+                       <button onClick={handleShuffleVault} className="ml-2 flex items-center gap-1.5 px-3 py-1 rounded-lg bg-red-600/10 border border-red-500/20 text-red-500 text-[8px] font-black uppercase tracking-widest hover:bg-red-600 hover:text-white transition-all active:scale-95"><i className="fa-solid fa-shuffle"></i> SHUFFLE VAULT</button>
                     </div>
-                    <button onClick={() => setShowQuickVault(false)} data-tooltip="Exit Panel" className="text-[9px] font-black text-slate-500 hover:text-white transition-all uppercase tracking-widest">DISMISS PANEL</button>
+                    <button onClick={() => setShowQuickVault(false)} className="text-[9px] font-black text-slate-500 hover:text-white transition-all uppercase tracking-widest">DISMISS PANEL</button>
                   </div>
                   <div className="relative rounded-2xl bg-[#010410] border-2 border-slate-900 shadow-[inset_0_2px_15px_rgba(0,0,0,0.8)] overflow-hidden">
                     <div className="h-[400px] overflow-y-auto custom-scrollbar p-3 flex flex-col gap-3">
@@ -490,10 +495,10 @@ const App: React.FC = () => {
                             onMouseLeave={() => setHoveredTab(null)}
                             className={`group flex items-center gap-6 p-4 rounded-xl transition-all border cursor-pointer h-[96px] shrink-0 relative ${v.id === currentVideo?.id ? 'bg-red-600/10 border-red-500/40' : `bg-white/[0.02] border-white/5 ${getCategoryHoverBg(v.category)}`}`}
                           >
-                            <button onClick={(e) => { e.stopPropagation(); handleToggleFavorite(v.id); }} data-tooltip="Remove from Vault" className="absolute top-2 right-2 w-7 h-7 rounded-full bg-red-600/10 text-red-500 hover:bg-red-600 hover:text-white transition-all flex items-center justify-center border border-red-500/20 z-10 group-hover:scale-110 opacity-0 group-hover:opacity-100" title="Remove from Vault"><i className="fa-solid fa-xmark text-[11px]"></i></button>
+                            <button onClick={(e) => { e.stopPropagation(); handleToggleFavorite(v.id); }} className="absolute top-2 right-2 w-7 h-7 rounded-full bg-red-600/10 text-red-500 hover:bg-red-600 hover:text-white transition-all flex items-center justify-center border border-red-500/20 z-10 group-hover:scale-110 opacity-0 group-hover:opacity-100"><i className="fa-solid fa-xmark text-[11px]"></i></button>
                             <div className="flex flex-col items-center justify-center gap-1 opacity-20 group-hover:opacity-100 transition-opacity pr-1">
-                                <button onClick={(e) => { e.stopPropagation(); handleMoveVaultedVideo(v.id, 'up'); }} data-tooltip="Reorder Up" className={`transition-all hover:scale-125 active:scale-90 text-slate-400 hover:text-red-400 ${idx === 0 ? 'invisible' : ''}`}><i className="fa-solid fa-chevron-up text-[10px]"></i></button>
-                                <button onClick={(e) => { e.stopPropagation(); handleMoveVaultedVideo(v.id, 'down'); }} data-tooltip="Reorder Down" className={`transition-all hover:scale-125 active:scale-90 text-slate-400 hover:text-red-400 ${idx === vaultedVideos.length - 1 ? 'invisible' : ''}`}><i className="fa-solid fa-chevron-down text-[10px]"></i></button>
+                                <button onClick={(e) => { e.stopPropagation(); handleMoveVaultedVideo(v.id, 'up'); }} className={`transition-all hover:scale-125 active:scale-90 text-slate-400 hover:text-red-400 ${idx === 0 ? 'invisible' : ''}`}><i className="fa-solid fa-chevron-up text-[10px]"></i></button>
+                                <button onClick={(e) => { e.stopPropagation(); handleMoveVaultedVideo(v.id, 'down'); }} className={`transition-all hover:scale-125 active:scale-90 text-slate-400 hover:text-red-400 ${idx === vaultedVideos.length - 1 ? 'invisible' : ''}`}><i className="fa-solid fa-chevron-down text-[10px]"></i></button>
                             </div>
                             <div className="w-28 aspect-video rounded-lg overflow-hidden border border-white/5 shrink-0 transition-all duration-500 ease-out group-hover:scale-[1.06] group-hover:-translate-y-1 group-hover:shadow-[0_20px_40px_-10px_rgba(0,0,0,0.8)] shadow-2xl">
                               <img src={v.thumbnail || `https://img.youtube.com/vi/${v.url.split('v=')[1]?.split('&')[0] || v.url}/mqdefault.jpg`} className={`w-full h-full object-cover transition-all duration-700 ${v.id === currentVideo?.id ? 'grayscale-0' : 'grayscale group-hover:grayscale-0'}`} />
@@ -526,7 +531,7 @@ const App: React.FC = () => {
       </main>
 
       {showLoginOverlay && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-[#020617]/90 backdrop-blur-md animate-fade-in">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-[#020617]/95 backdrop-blur-xl animate-fade-in">
           <div className="w-full max-w-md relative">
             <button 
               onClick={() => setShowLoginOverlay(false)}
