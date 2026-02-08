@@ -232,7 +232,7 @@ const Playlist: React.FC<PlaylistProps> = ({
             )}
             <button onClick={onAddRandom} className="text-[9px] font-black uppercase tracking-widest text-blue-500 hover:text-white transition-all flex items-center gap-2 cursor-pointer">
               <i className="fa-solid fa-brain text-[11px]"></i>
-              Surprise
+              Surprise Me
             </button>
             {isAuthorized && (
               <button 
