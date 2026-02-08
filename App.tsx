@@ -14,7 +14,17 @@ const CAT_KEY = 'integral_v412_categories';
 const CAT_COLORS_KEY = 'integral_v412_cat_colors';
 const ADMIN_PASSWORD = 'ADMIN';
 
+const DEFAULT_CATEGORIES: VideoCategory[] = [
+  'Meditation',
+  'Integral Serenity',
+  'Permia Community',
+  'Other'
+];
+
 const DEFAULT_CAT_COLORS: Record<string, string> = {
+  'Meditation': '#10b981',
+  'Integral Serenity': '#ef4444',
+  'Permia Community': '#facc15',
   'Other': '#64748b'
 };
 
@@ -42,7 +52,7 @@ const App: React.FC = () => {
   const [categories, setCategories] = useState<VideoCategory[]>(() => {
     const saved = localStorage.getItem(CAT_KEY);
     if (saved) return JSON.parse(saved);
-    return []; // Start with no categories
+    return DEFAULT_CATEGORIES;
   });
 
   const [categoryColors, setCategoryColors] = useState<Record<string, string>>(() => {
@@ -109,7 +119,7 @@ const App: React.FC = () => {
   }, []);
 
   const handleClearCategories = useCallback(() => {
-    setCategories([]);
+    setCategories(DEFAULT_CATEGORIES);
     setCategoryColors(DEFAULT_CAT_COLORS);
     if (playlistTab !== 'All' && playlistTab !== 'Vault') {
       setPlaylistTab('All');
