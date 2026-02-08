@@ -43,9 +43,10 @@ const App: React.FC = () => {
   const [reviewInitialTab, setReviewInitialTab] = useState<'Read' | 'Write'>('Read');
   const [isPlaying, setIsPlaying] = useState(false);
   const [playlistTab, setPlaylistTab] = useState<VideoCategory | 'All' | 'Vault'>('All');
-  const [isCopyingCode, setIsCopyingCode] = useState(false);
+  const [isSuccessFeedback, setIsSuccessFeedback] = useState<'export' | 'import' | null>(null);
   
   const playerContainerRef = useRef<HTMLDivElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [categories, setCategories] = useState<VideoCategory[]>(() => {
     const saved = localStorage.getItem(CAT_KEY);
@@ -80,12 +81,58 @@ const App: React.FC = () => {
     localStorage.setItem(CAT_COLORS_KEY, JSON.stringify(categoryColors));
   }, [videos, isAuthorized, categories, categoryColors]);
 
-  const handleCopyArchive = useCallback(() => {
-    const json = JSON.stringify(videos, null, 2);
-    navigator.clipboard.writeText(json);
-    setIsCopyingCode(true);
-    setTimeout(() => setIsCopyingCode(false), 2000);
-  }, [videos]);
+  const handleExportToFile = useCallback(() => {
+    const backup = {
+      videos,
+      categories,
+      categoryColors,
+      exportDate: new Date().toISOString()
+    };
+    const blob = new Blob([JSON.stringify(backup, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `integral-stream-backup-${new Date().getTime()}.json`;
+    link.click();
+    URL.revokeObjectURL(url);
+    
+    setIsSuccessFeedback('export');
+    setTimeout(() => setIsSuccessFeedback(null), 2000);
+  }, [videos, categories, categoryColors]);
+
+  const handleImportFromFile = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const content = e.target?.result as string;
+        const backup = JSON.parse(content);
+        
+        if (backup.videos && Array.isArray(backup.videos)) {
+          setVideos(backup.videos);
+          if (backup.categories) setCategories(backup.categories);
+          if (backup.categoryColors) setCategoryColors(backup.categoryColors);
+          
+          if (backup.videos.length > 0) {
+            setCurrentVideoId(backup.videos[0].id);
+          }
+          
+          setIsSuccessFeedback('import');
+          setTimeout(() => setIsSuccessFeedback(null), 2000);
+        } else {
+          alert("Invalid backup file format.");
+        }
+      } catch (err) {
+        console.error("Import failed:", err);
+        alert("Failed to parse the backup file.");
+      }
+    };
+    reader.readAsText(file);
+    // Clear the input so same file can be imported again if needed
+    if (fileInputRef.current) fileInputRef.current.value = '';
+  }, []);
 
   const pendingReviewsCount = useMemo(() => {
     return videos.reduce((acc, v) => acc + (v.reviews?.filter(r => !r.isApproved).length || 0), 0);
@@ -315,17 +362,38 @@ const App: React.FC = () => {
                 </h2>
               </div>
 
-              <button 
-                onClick={handleCopyArchive}
-                className={`flex items-center gap-2 px-4 py-2 rounded-xl border text-[9px] font-black uppercase tracking-widest transition-all cursor-pointer ${
-                  isCopyingCode 
-                  ? 'bg-emerald-600/20 border-emerald-500/40 text-emerald-400' 
-                  : 'bg-white/5 border-white/10 text-slate-500 hover:text-white hover:border-white/20'
-                }`}
-              >
-                <i className={`fa-solid ${isCopyingCode ? 'fa-circle-check animate-bounce' : 'fa-code'}`}></i>
-                {isCopyingCode ? 'Code Copied' : 'Copy Code'}
-              </button>
+              <div className="flex items-center gap-2">
+                <input 
+                  type="file" 
+                  ref={fileInputRef} 
+                  onChange={handleImportFromFile} 
+                  accept=".json" 
+                  className="hidden" 
+                />
+                <button 
+                  onClick={() => fileInputRef.current?.click()}
+                  className={`flex items-center gap-2 px-4 py-2 rounded-xl border text-[9px] font-black uppercase tracking-widest transition-all cursor-pointer ${
+                    isSuccessFeedback === 'import' 
+                    ? 'bg-emerald-600/20 border-emerald-500/40 text-emerald-400' 
+                    : 'bg-white/5 border-white/10 text-slate-500 hover:text-white hover:border-white/20'
+                  }`}
+                >
+                  <i className={`fa-solid ${isSuccessFeedback === 'import' ? 'fa-circle-check animate-bounce' : 'fa-file-import'}`}></i>
+                  {isSuccessFeedback === 'import' ? 'Vault Restored' : 'Import Vault'}
+                </button>
+
+                <button 
+                  onClick={handleExportToFile}
+                  className={`flex items-center gap-2 px-4 py-2 rounded-xl border text-[9px] font-black uppercase tracking-widest transition-all cursor-pointer ${
+                    isSuccessFeedback === 'export' 
+                    ? 'bg-blue-600/20 border-blue-500/40 text-blue-400' 
+                    : 'bg-white/5 border-white/10 text-slate-500 hover:text-white hover:border-white/20'
+                  }`}
+                >
+                  <i className={`fa-solid ${isSuccessFeedback === 'export' ? 'fa-circle-check animate-bounce' : 'fa-file-export'}`}></i>
+                  {isSuccessFeedback === 'export' ? 'Vault Exported' : 'Export Vault'}
+                </button>
+              </div>
             </div>
 
             <div className="px-8 w-full" ref={playerContainerRef}>
