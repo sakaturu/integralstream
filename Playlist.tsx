@@ -64,6 +64,7 @@ const Playlist: React.FC<PlaylistProps> = ({
   const [isAddingCategoryInline, setIsAddingCategoryInline] = useState(false);
   const [inlineCategoryName, setInlineCategoryName] = useState('');
   const [selectedColor, setSelectedColor] = useState(COLOR_PALETTE[0][0]);
+  const [isFetchingTitle, setIsFetchingTitle] = useState(false);
 
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const urlInputRef = useRef<HTMLInputElement>(null);
@@ -81,15 +82,6 @@ const Playlist: React.FC<PlaylistProps> = ({
     }
   }, [showAddForm]);
 
-  const handlePurgeClick = () => {
-    if (purgeConfirmation) {
-      onPurgeAll();
-      setPurgeConfirmation(false);
-    } else {
-      setPurgeConfirmation(true);
-    }
-  };
-
   const getCleanId = (input: string) => {
     if (!input) return null;
     const trimmed = input.trim();
@@ -97,6 +89,38 @@ const Playlist: React.FC<PlaylistProps> = ({
     const regExp = /^.*(?:(?:youtu\.be\/|v\/|vi\/|u\/\w\/|embed\/|shorts\/)|(?:(?:watch)?\?v(?:i)?=|\&v(?:i)?=))([^#\&\?]*).*/;
     const match = trimmed.match(regExp);
     return (match && match[1] && match[1].length === 11) ? match[1] : null;
+  };
+
+  // Automatic Title Fetching
+  useEffect(() => {
+    const videoId = getCleanId(newUrl);
+    if (videoId && !newPrompt) {
+      const fetchTitle = async () => {
+        setIsFetchingTitle(true);
+        try {
+          // Using noembed as a simple, open oEmbed proxy for YouTube
+          const response = await fetch(`https://noembed.com/embed?url=https://www.youtube.com/watch?v=${videoId}`);
+          const data = await response.json();
+          if (data && data.title) {
+            setNewPrompt(data.title);
+          }
+        } catch (error) {
+          console.error("Failed to fetch YouTube title:", error);
+        } finally {
+          setIsFetchingTitle(false);
+        }
+      };
+      fetchTitle();
+    }
+  }, [newUrl, newPrompt]);
+
+  const handlePurgeClick = () => {
+    if (purgeConfirmation) {
+      onPurgeAll();
+      setPurgeConfirmation(false);
+    } else {
+      setPurgeConfirmation(true);
+    }
   };
 
   const filteredVideos = useMemo(() => {
@@ -298,8 +322,29 @@ const Playlist: React.FC<PlaylistProps> = ({
               )}
 
               <form onSubmit={handleInlineSubmit} className="space-y-4">
-                <input ref={urlInputRef} required type="text" placeholder="YouTube URL..." value={newUrl} onChange={(e) => setNewUrl(e.target.value)} className="w-full bg-black/60 border border-white/5 rounded-xl px-4 py-3 text-[10px] text-white focus:outline-none" />
-                <input type="text" placeholder="Neural Prompt / Title..." value={newPrompt} onChange={(e) => setNewPrompt(e.target.value)} className="w-full bg-black/60 border border-white/10 rounded-xl px-4 py-3 text-[10px] text-white focus:outline-none" />
+                <div className="relative">
+                  <input 
+                    ref={urlInputRef} 
+                    required 
+                    type="text" 
+                    placeholder="YouTube URL..." 
+                    value={newUrl} 
+                    onChange={(e) => setNewUrl(e.target.value)} 
+                    className="w-full bg-black/60 border border-white/5 rounded-xl px-4 py-3 text-[10px] text-white focus:outline-none pr-10" 
+                  />
+                  {isFetchingTitle && (
+                    <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                      <i className="fa-solid fa-circle-notch fa-spin text-blue-500 text-[10px]"></i>
+                    </div>
+                  )}
+                </div>
+                <input 
+                  type="text" 
+                  placeholder="Neural Prompt / Title..." 
+                  value={newPrompt} 
+                  onChange={(e) => setNewPrompt(e.target.value)} 
+                  className={`w-full bg-black/60 border rounded-xl px-4 py-3 text-[10px] text-white focus:outline-none transition-all ${isFetchingTitle ? 'border-blue-500/30' : 'border-white/10'}`} 
+                />
                 <div className="space-y-2">
                   <span className="text-[8px] font-black text-slate-600 uppercase tracking-widest">Classification Matrix</span>
                   <div className="flex flex-wrap gap-1.5">
