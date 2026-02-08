@@ -1,39 +1,26 @@
 import { VideoItem, VideoCategory, Review } from '../types';
 
-export const LIBRARY_VERSION = 501;
-
-const MOCK_REVIEWS: Review[] = [
-  { id: 'r1', rating: 5, text: "Absolutely breathtaking visuals. The neural transitions are seamless!", user: "NeuralVoyager", timestamp: Date.now() - 86400000, isApproved: true }
-];
+export const LIBRARY_VERSION = 502;
 
 /**
  * BASE LIBRARY DATA
- * To update this permanently, use the 'Save to Codebase' tool 
- * in the app's Moderation Panel and replace this file's content.
+ * Initializing as an empty array to provide a clear starting state.
  */
-const INITIAL_VIDEO_DATA = [
-  { id: 'v1', prompt: "Tree of life", category: "Integral Serenity", url: "-WlazEoSDLY" },
-  { id: 'v2', prompt: "Digital Zen Garden", category: "Meditation", url: "-WlazEoSDLY" },
-  { id: 'v3', prompt: "Digital Zen Garden", category: "Meditation", url: "-WlazEoSDLY" },
-  { id: 'v4', prompt: "Digital Zen Garden", category: "Meditation", url: "-WlazEoSDLY" },
-  { id: 'v5', prompt: "Digital Zen Garden", category: "Meditation", url: "-WlazEoSDLY" },
-  { id: 'v6', prompt: "Digital Zen Garden", category: "Meditation", url: "-WlazEoSDLY" },
-  { id: 'v7', prompt: "Digital Zen Garden", category: "Meditation", url: "-WlazEoSDLY" }
-];
+const INITIAL_VIDEO_DATA: any[] = [];
 
 export const getSampleLibrary = (): VideoItem[] => {
   return INITIAL_VIDEO_DATA.map((item, idx) => ({
     ...item,
     timestamp: Date.now() - (idx * 100000),
     status: 'ready',
-    viewCount: Math.floor(Math.random() * 5000),
-    likeCount: Math.floor(Math.random() * 500),
-    dislikeCount: Math.floor(Math.random() * 50),
-    rating: 5,
-    isFavorite: idx === 0, 
+    viewCount: 0,
+    likeCount: 0,
+    dislikeCount: 0,
+    rating: 0,
+    isFavorite: false, 
     isLiked: false,
     isDisliked: false,
-    reviews: idx === 0 ? MOCK_REVIEWS : []
+    reviews: []
   }));
 };
 
