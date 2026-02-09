@@ -54,15 +54,26 @@ const App: React.FC = () => {
   const terminalRef = useRef<HTMLDivElement>(null);
 
   const [categories, setCategories] = useState<VideoCategory[]>(() => {
+    const localVersion = parseInt(localStorage.getItem(VERSION_KEY) || '0', 10);
     const saved = localStorage.getItem(CAT_KEY);
-    if (saved) return JSON.parse(saved);
-    return DEFAULT_CATEGORIES;
+    let currentCats: VideoCategory[] = saved ? JSON.parse(saved) : DEFAULT_CATEGORIES;
+
+    // Ensure rebranded categories are included if version changed
+    if (LIBRARY_VERSION > localVersion) {
+      DEFAULT_CATEGORIES.forEach(dc => {
+        if (!currentCats.includes(dc)) currentCats.push(dc);
+      });
+      // Clean up legacy categories if needed
+      if (currentCats.includes('Other')) {
+        currentCats = currentCats.filter(c => c !== 'Other');
+      }
+    }
+    return currentCats;
   });
 
   const [categoryColors, setCategoryColors] = useState<Record<string, string>>(() => {
     const saved = localStorage.getItem(CAT_COLORS_KEY);
-    if (saved) return JSON.parse(saved);
-    return DEFAULT_CAT_COLORS;
+    return saved ? JSON.parse(saved) : DEFAULT_CAT_COLORS;
   });
 
   const [videos, setVideos] = useState<VideoItem[]>(() => {
@@ -75,32 +86,36 @@ const App: React.FC = () => {
     try {
       let localData: VideoItem[] = JSON.parse(savedDataStr);
       
-      // SMART SYNC: If the version in code is higher than local storage, 
-      // we update metadata for system videos (matching URLs) and add new ones.
+      // DEEP METADATA SYNC: If version mismatch, force update system metadata
       if (LIBRARY_VERSION > localVersion) {
-        console.warn(`INTEGRAL SYSTEM: Smart Sync Active (v${localVersion} -> v${LIBRARY_VERSION})`);
+        console.warn(`INTEGRAL SYSTEM: Deep Sync Protocol v${LIBRARY_VERSION} Engaged`);
         
         const sourceMap = new Map(sourceData.map(v => [v.url, v]));
         
-        // Update metadata for existing system videos, but keep user stats (views, likes, etc.)
-        const updatedLocalData = localData.map(lv => {
+        // Map through local data and update titles/categories from source if URL matches
+        const syncedLocalData = localData.map(lv => {
           const sv = sourceMap.get(lv.url);
           if (sv) {
             return {
-              ...lv,
-              prompt: sv.prompt,
-              category: sv.category,
-              thumbnail: sv.thumbnail || lv.thumbnail
+              ...sv,             // 1. Take latest titles, categories, thumbnails from source
+              id: lv.id,         // 2. Preserve stable local ID
+              viewCount: lv.viewCount,
+              likeCount: lv.likeCount,
+              dislikeCount: lv.dislikeCount,
+              isFavorite: lv.isFavorite,
+              isLiked: lv.isLiked,
+              isDisliked: lv.isDisliked,
+              reviews: lv.reviews
             };
           }
           return lv;
         });
 
-        // Identify truly new source videos that aren't in the local list yet
+        // Add any brand new videos from source that aren't in local storage at all
         const localUrls = new Set(localData.map(v => v.url));
-        const newSourceItems = sourceData.filter(v => !localUrls.has(v.url));
+        const brandNewItems = sourceData.filter(v => !localUrls.has(v.url));
         
-        return [...newSourceItems, ...updatedLocalData];
+        return [...brandNewItems, ...syncedLocalData];
       }
       return localData;
     } catch (e) {
