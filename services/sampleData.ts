@@ -1,13 +1,13 @@
 import { VideoItem, VideoCategory, Review } from '../types';
 
 /**
- * LIBRARY_VERSION 1300: Hard Sync for Integral Serenity expansion.
+ * LIBRARY_VERSION 1500: Hard Sync for Spanish category expansion.
  */
-export const LIBRARY_VERSION = 1300;
+export const LIBRARY_VERSION = 1500;
 
 /**
  * BASE LIBRARY DATA
- * Updated with the full requested Permia Community and Integral Serenity sets.
+ * Updated with the full requested Permia Community, Integral Serenity, and Spanish sets.
  */
 const INITIAL_VIDEO_DATA: any[] = [
   {
@@ -37,6 +37,13 @@ const INITIAL_VIDEO_DATA: any[] = [
     "category": "Permia Community",
     "url": "Z4X39fuYgck",
     "thumbnail": "https://img.youtube.com/vi/Z4X39fuYgck/mqdefault.jpg"
+  },
+  {
+    "id": "v-span-001",
+    "prompt": "Spanish Signal Flux",
+    "category": "Spanish",
+    "url": "CFuwwO9XgQA",
+    "thumbnail": "https://img.youtube.com/vi/CFuwwO9XgQA/mqdefault.jpg"
   },
   {
     "id": "v-int-001",
