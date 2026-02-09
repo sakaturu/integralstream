@@ -1,9 +1,9 @@
 import { VideoItem, VideoCategory, Review } from '../types';
 
 /**
- * LIBRARY_VERSION 1800: Hard Sync for Signal Title refinement and category correction.
+ * LIBRARY_VERSION 1900: Smart Sync update to handle metadata refreshes on-the-fly.
  */
-export const LIBRARY_VERSION = 1800;
+export const LIBRARY_VERSION = 1900;
 
 /**
  * BASE LIBRARY DATA
