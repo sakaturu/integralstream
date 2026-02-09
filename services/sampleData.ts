@@ -1,10 +1,10 @@
 import { VideoItem, VideoCategory, Review } from '../types';
 
 /**
- * LIBRARY_VERSION 3000: Major Architectural Refresh.
- * This version introduces automated state migration to prevent "stale cache" issues.
+ * LIBRARY_VERSION 3100: Live-Sync Update.
+ * This version supports background polling for on-the-fly deployments.
  */
-export const LIBRARY_VERSION = 3000;
+export const LIBRARY_VERSION = 3100;
 
 /**
  * BASE LIBRARY DATA
@@ -41,7 +41,7 @@ const INITIAL_VIDEO_DATA: any[] = [
   },
   {
     "id": "v-fav-001",
-    "prompt": "Heal The Earth",
+    "prompt": "Heal The Earth - 432Hz Healing Frequency",
     "category": "Fav. Pick",
     "url": "_5aA54MD4ho",
     "thumbnail": "https://img.youtube.com/vi/_5aA54MD4ho/mqdefault.jpg"
