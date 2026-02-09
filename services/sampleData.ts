@@ -1,14 +1,14 @@
 import { VideoItem, VideoCategory, Review } from '../types';
 
 /**
- * LIBRARY_VERSION 2000: Force Sync update. 
- * Incremented to trigger a deep metadata refresh across all client instances.
+ * LIBRARY_VERSION 3000: Major Architectural Refresh.
+ * This version introduces automated state migration to prevent "stale cache" issues.
  */
-export const LIBRARY_VERSION = 2000;
+export const LIBRARY_VERSION = 3000;
 
 /**
  * BASE LIBRARY DATA
- * Refined titles and categories.
+ * Refined titles and categories for all primary signals.
  */
 const INITIAL_VIDEO_DATA: any[] = [
   {
@@ -41,7 +41,7 @@ const INITIAL_VIDEO_DATA: any[] = [
   },
   {
     "id": "v-fav-001",
-    "prompt": "Heal The Earth222",
+    "prompt": "Heal The Earth333",
     "category": "Fav. Pick",
     "url": "_5aA54MD4ho",
     "thumbnail": "https://img.youtube.com/vi/_5aA54MD4ho/mqdefault.jpg"
