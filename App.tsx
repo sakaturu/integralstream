@@ -70,9 +70,9 @@ const App: React.FC = () => {
     const savedDataStr = localStorage.getItem(DATA_KEY);
     const sourceData = getSampleLibrary();
     
-    // Hard reset threshold updated to 1700 for "Fav. Pick" rebranding
-    if (LIBRARY_VERSION >= 1700 && localVersion < 1700) {
-      console.warn("INTEGRAL SYSTEM: Synchronizing Rebranded Signal Library v1700...");
+    // Hard reset threshold updated to 1800 for Signal refinement
+    if (LIBRARY_VERSION >= 1800 && localVersion < 1800) {
+      console.warn("INTEGRAL SYSTEM: Synchronizing Refined Signal Library v1800...");
       return sourceData; 
     }
 
