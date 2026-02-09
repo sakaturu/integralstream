@@ -1,13 +1,13 @@
 import { VideoItem, VideoCategory, Review } from '../types';
 
 /**
- * LIBRARY_VERSION 1700: Hard Sync for "Fav. Pick" rebranding and expansion.
+ * LIBRARY_VERSION 1800: Hard Sync for Signal Title refinement and category correction.
  */
-export const LIBRARY_VERSION = 1700;
+export const LIBRARY_VERSION = 1800;
 
 /**
  * BASE LIBRARY DATA
- * Updated with Permia Community, Integral Serenity, Spanish, and the new Fav. Pick sets.
+ * Corrected titles and categories based on requested signals.
  */
 const INITIAL_VIDEO_DATA: any[] = [
   {
@@ -40,21 +40,21 @@ const INITIAL_VIDEO_DATA: any[] = [
   },
   {
     "id": "v-fav-001",
-    "prompt": "Premium Favored Signal",
+    "prompt": "Heal The Earth - 432Hz Healing Frequency",
     "category": "Fav. Pick",
     "url": "_5aA54MD4ho",
     "thumbnail": "https://img.youtube.com/vi/_5aA54MD4ho/mqdefault.jpg"
   },
   {
     "id": "v-span-001",
-    "prompt": "Sandbag Dome",
-    "category": "Permia Community",
+    "prompt": "Sandbag Dome - Permia Community Spanish",
+    "category": "Spanish",
     "url": "CFuwwO9XgQA",
     "thumbnail": "https://img.youtube.com/vi/CFuwwO9XgQA/mqdefault.jpg"
   },
   {
     "id": "v-span-002",
-    "prompt": "Spanish Serenity Echo",
+    "prompt": "Meditación Guiada - Serenity Echo",
     "category": "Spanish",
     "url": "MqHhPApGM0Q",
     "thumbnail": "https://img.youtube.com/vi/MqHhPApGM0Q/mqdefault.jpg"
