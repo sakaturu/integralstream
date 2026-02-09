@@ -46,7 +46,8 @@ const IntegralLogo = () => (
 );
 
 const App: React.FC = () => {
-  const [isAuthorized, setIsAuthorized] = useState<boolean>((() => localStorage.getItem(AUTH_KEY) === 'true'));
+  // Public Access Protocol: Everyone is an admin by default for this deployment phase.
+  const [isAuthorized, setIsAuthorized] = useState<boolean>(true);
   const [showLoginOverlay, setShowLoginOverlay] = useState(false);
   const [activeSecondaryView, setActiveSecondaryView] = useState<'none' | 'reviews' | 'vault' | 'moderation'>('none');
   const [reviewInitialTab, setReviewInitialTab] = useState<'Read' | 'Write'>('Read');
@@ -104,7 +105,6 @@ const App: React.FC = () => {
     const currentSource = getSampleLibrary();
     const currentSourceMap = new Map(currentSource.map(v => [v.url, v]));
     const savedDataStr = localStorage.getItem(DATA_KEY);
-    const localVersion = parseInt(localStorage.getItem(VERSION_KEY) || '0', 10);
     const legacyDataStr = localStorage.getItem(LEGACY_DATA_KEY);
 
     let baseData: VideoItem[] = [];
@@ -276,7 +276,13 @@ const App: React.FC = () => {
               {pendingReviewsCount > 0 && <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-600 rounded-full text-[10px] font-black flex items-center justify-center border-2 border-[#050a18] shadow-lg">{pendingReviewsCount}</span>}
             </button>
           )}
-          <button onClick={() => isAuthorized ? setIsAuthorized(false) : setShowLoginOverlay(true)} className={`w-11 h-11 rounded-xl flex items-center justify-center border transition-all cursor-pointer ${isAuthorized ? 'bg-blue-600/10 border-blue-500/30 text-blue-500' : 'bg-white/5 border-white/10 text-slate-500 hover:text-white'}`}><i className={`fa-solid ${isAuthorized ? 'fa-user-check' : 'fa-user-lock'}`}></i></button>
+          <button 
+            onClick={() => isAuthorized ? setIsAuthorized(false) : setShowLoginOverlay(true)} 
+            data-tooltip={isAuthorized ? "Deauthorize Session" : "Request Authorization"}
+            className={`w-11 h-11 rounded-xl flex items-center justify-center border transition-all cursor-pointer ${isAuthorized ? 'bg-emerald-600/10 border-emerald-500/30 text-emerald-500 shadow-[0_0_15px_rgba(16,185,129,0.2)]' : 'bg-white/5 border-white/10 text-slate-500 hover:text-white'}`}
+          >
+            <i className={`fa-solid ${isAuthorized ? 'fa-globe' : 'fa-user-lock'}`}></i>
+          </button>
         </div>
       </header>
 
