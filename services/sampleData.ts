@@ -1,13 +1,13 @@
 import { VideoItem, VideoCategory, Review } from '../types';
 
 /**
- * LIBRARY_VERSION 1500: Hard Sync for Spanish category expansion.
+ * LIBRARY_VERSION 1700: Hard Sync for "Fav. Pick" rebranding and expansion.
  */
-export const LIBRARY_VERSION = 1500;
+export const LIBRARY_VERSION = 1700;
 
 /**
  * BASE LIBRARY DATA
- * Updated with the full requested Permia Community, Integral Serenity, and Spanish sets.
+ * Updated with Permia Community, Integral Serenity, Spanish, and the new Fav. Pick sets.
  */
 const INITIAL_VIDEO_DATA: any[] = [
   {
@@ -39,11 +39,25 @@ const INITIAL_VIDEO_DATA: any[] = [
     "thumbnail": "https://img.youtube.com/vi/Z4X39fuYgck/mqdefault.jpg"
   },
   {
+    "id": "v-fav-001",
+    "prompt": "Premium Favored Signal",
+    "category": "Fav. Pick",
+    "url": "_5aA54MD4ho",
+    "thumbnail": "https://img.youtube.com/vi/_5aA54MD4ho/mqdefault.jpg"
+  },
+  {
     "id": "v-span-001",
-    "prompt": "Spanish Signal Flux",
-    "category": "Spanish",
+    "prompt": "Sandbag Dome",
+    "category": "Permia Community",
     "url": "CFuwwO9XgQA",
     "thumbnail": "https://img.youtube.com/vi/CFuwwO9XgQA/mqdefault.jpg"
+  },
+  {
+    "id": "v-span-002",
+    "prompt": "Spanish Serenity Echo",
+    "category": "Spanish",
+    "url": "MqHhPApGM0Q",
+    "thumbnail": "https://img.youtube.com/vi/MqHhPApGM0Q/mqdefault.jpg"
   },
   {
     "id": "v-int-001",
@@ -118,7 +132,7 @@ export const getSurpriseVideo = (): VideoItem => {
   return {
     id: `surprise-${Date.now()}`,
     prompt: "Neural Surprise Signal",
-    category: 'Other',
+    category: 'Fav. Pick',
     url: id,
     timestamp: Date.now(),
     status: 'ready',
