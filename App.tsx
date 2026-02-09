@@ -70,20 +70,37 @@ const App: React.FC = () => {
     const savedDataStr = localStorage.getItem(DATA_KEY);
     const sourceData = getSampleLibrary();
     
-    // Hard reset threshold updated to 1800 for Signal refinement
-    if (LIBRARY_VERSION >= 1800 && localVersion < 1800) {
-      console.warn("INTEGRAL SYSTEM: Synchronizing Refined Signal Library v1800...");
-      return sourceData; 
-    }
-
     if (!savedDataStr) return sourceData;
 
     try {
       let localData: VideoItem[] = JSON.parse(savedDataStr);
+      
+      // SMART SYNC: If the version in code is higher than local storage, 
+      // we update metadata for system videos (matching URLs) and add new ones.
       if (LIBRARY_VERSION > localVersion) {
+        console.warn(`INTEGRAL SYSTEM: Smart Sync Active (v${localVersion} -> v${LIBRARY_VERSION})`);
+        
+        const sourceMap = new Map(sourceData.map(v => [v.url, v]));
+        
+        // Update metadata for existing system videos, but keep user stats (views, likes, etc.)
+        const updatedLocalData = localData.map(lv => {
+          const sv = sourceMap.get(lv.url);
+          if (sv) {
+            return {
+              ...lv,
+              prompt: sv.prompt,
+              category: sv.category,
+              thumbnail: sv.thumbnail || lv.thumbnail
+            };
+          }
+          return lv;
+        });
+
+        // Identify truly new source videos that aren't in the local list yet
         const localUrls = new Set(localData.map(v => v.url));
-        const newItems = sourceData.filter(v => !localUrls.has(v.url));
-        return [...newItems, ...localData];
+        const newSourceItems = sourceData.filter(v => !localUrls.has(v.url));
+        
+        return [...newSourceItems, ...updatedLocalData];
       }
       return localData;
     } catch (e) {
