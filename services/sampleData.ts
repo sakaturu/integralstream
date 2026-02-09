@@ -40,7 +40,7 @@ const INITIAL_VIDEO_DATA: any[] = [
   },
   {
     "id": "v-fav-001",
-    "prompt": "Heal The Earth - 432Hz Healing Frequency",
+    "prompt": "Heal The Earth",
     "category": "Fav. Pick",
     "url": "_5aA54MD4ho",
     "thumbnail": "https://img.youtube.com/vi/_5aA54MD4ho/mqdefault.jpg"
