@@ -8,12 +8,23 @@ import FloatingReviewHub from './components/FloatingReviewHub';
 import ModerationPanel from './components/ModerationPanel';
 import { getSampleLibrary, getSurpriseVideo, LIBRARY_VERSION } from './services/sampleData';
 
-const DATA_KEY = 'integral_v412_vault';
-const VERSION_KEY = 'integral_v412_version';
+/**
+ * STORAGE CONSTANTS
+ * We use the LIBRARY_VERSION in the keys to force a refresh if the architecture changes significantly,
+ * but our initialization logic handles cross-version migrations silently.
+ */
+const DATA_KEY = `integral_vault_v${LIBRARY_VERSION}`;
+const VERSION_KEY = `integral_version_v${LIBRARY_VERSION}`;
 const AUTH_KEY = 'integral_v411_auth';
-const CAT_KEY = 'integral_v412_categories';
-const CAT_COLORS_KEY = 'integral_v412_cat_colors';
+const CAT_KEY = `integral_categories_v${LIBRARY_VERSION}`;
+const CAT_COLORS_KEY = `integral_cat_colors_v${LIBRARY_VERSION}`;
 const ADMIN_PASSWORD = 'ADMIN';
+
+/**
+ * LEGACY KEYS (For Migration)
+ */
+const LEGACY_DATA_KEY = 'integral_v412_vault';
+const LEGACY_VERSION_KEY = 'integral_v412_version';
 
 const DEFAULT_CATEGORIES: VideoCategory[] = [
   'Meditation',
@@ -53,22 +64,12 @@ const App: React.FC = () => {
   const playerContainerRef = useRef<HTMLDivElement>(null);
   const terminalRef = useRef<HTMLDivElement>(null);
 
+  /**
+   * INITIALIZE CATEGORIES
+   */
   const [categories, setCategories] = useState<VideoCategory[]>(() => {
-    const localVersion = parseInt(localStorage.getItem(VERSION_KEY) || '0', 10);
     const saved = localStorage.getItem(CAT_KEY);
-    let currentCats: VideoCategory[] = saved ? JSON.parse(saved) : DEFAULT_CATEGORIES;
-
-    // Ensure rebranded categories are included if version changed
-    if (LIBRARY_VERSION > localVersion) {
-      DEFAULT_CATEGORIES.forEach(dc => {
-        if (!currentCats.includes(dc)) currentCats.push(dc);
-      });
-      // Clean up legacy categories if needed
-      if (currentCats.includes('Other')) {
-        currentCats = currentCats.filter(c => c !== 'Other');
-      }
-    }
-    return currentCats;
+    return saved ? JSON.parse(saved) : DEFAULT_CATEGORIES;
   });
 
   const [categoryColors, setCategoryColors] = useState<Record<string, string>>(() => {
@@ -76,61 +77,92 @@ const App: React.FC = () => {
     return saved ? JSON.parse(saved) : DEFAULT_CAT_COLORS;
   });
 
+  /**
+   * INITIALIZE VIDEOS (With Migration & Auto-Sync)
+   */
   const [videos, setVideos] = useState<VideoItem[]>(() => {
-    const localVersion = parseInt(localStorage.getItem(VERSION_KEY) || '0', 10);
-    const savedDataStr = localStorage.getItem(DATA_KEY);
-    const sourceData = getSampleLibrary();
+    const currentSource = getSampleLibrary();
+    const currentSourceMap = new Map(currentSource.map(v => [v.url, v]));
     
-    if (!savedDataStr) return sourceData;
+    // Check Current Version Storage
+    const savedDataStr = localStorage.getItem(DATA_KEY);
+    const localVersion = parseInt(localStorage.getItem(VERSION_KEY) || '0', 10);
 
-    try {
-      let localData: VideoItem[] = JSON.parse(savedDataStr);
-      
-      // DEEP METADATA SYNC: If version mismatch, force update system metadata
-      if (LIBRARY_VERSION > localVersion) {
-        console.warn(`INTEGRAL SYSTEM: Deep Sync Protocol v${LIBRARY_VERSION} Engaged`);
-        
-        const sourceMap = new Map(sourceData.map(v => [v.url, v]));
-        
-        // Map through local data and update titles/categories from source if URL matches
-        const syncedLocalData = localData.map(lv => {
-          const sv = sourceMap.get(lv.url);
-          if (sv) {
-            return {
-              ...sv,             // 1. Take latest titles, categories, thumbnails from source
-              id: lv.id,         // 2. Preserve stable local ID
-              viewCount: lv.viewCount,
-              likeCount: lv.likeCount,
-              dislikeCount: lv.dislikeCount,
-              isFavorite: lv.isFavorite,
-              isLiked: lv.isLiked,
-              isDisliked: lv.isDisliked,
-              reviews: lv.reviews
-            };
-          }
-          return lv;
-        });
+    // Check Legacy Version Storage (v2xxx and older)
+    const legacyDataStr = localStorage.getItem(LEGACY_DATA_KEY);
+    const legacyVersion = parseInt(localStorage.getItem(LEGACY_VERSION_KEY) || '0', 10);
 
-        // Add any brand new videos from source that aren't in local storage at all
-        const localUrls = new Set(localData.map(v => v.url));
-        const brandNewItems = sourceData.filter(v => !localUrls.has(v.url));
-        
-        return [...brandNewItems, ...syncedLocalData];
-      }
-      return localData;
-    } catch (e) {
-      return sourceData;
+    let baseData: VideoItem[] = [];
+
+    // Protocol 1: Fresh Install
+    if (!savedDataStr && !legacyDataStr) {
+      return currentSource;
     }
+
+    // Protocol 2: Migrate from Legacy
+    if (!savedDataStr && legacyDataStr) {
+      console.warn("INTEGRAL SYSTEM: Migrating Legacy Neural Patterns...");
+      try {
+        baseData = JSON.parse(legacyDataStr);
+      } catch (e) {
+        return currentSource;
+      }
+    } 
+    // Protocol 3: Load from Current Storage
+    else if (savedDataStr) {
+      try {
+        baseData = JSON.parse(savedDataStr);
+      } catch (e) {
+        return currentSource;
+      }
+    }
+
+    // Protocol 4: Deep Metadata Refresh
+    // If we've detected a code update (LIBRARY_VERSION > localVersion or version key mismatch), 
+    // we force update all metadata (Titles, Categories) for system videos.
+    const syncedData = baseData.map(lv => {
+      const sv = currentSourceMap.get(lv.url);
+      if (sv) {
+        // Overwrite UI-critical metadata with the latest code version, but keep user stats
+        return {
+          ...sv,
+          id: lv.id, 
+          viewCount: lv.viewCount,
+          likeCount: lv.likeCount,
+          dislikeCount: lv.dislikeCount,
+          isFavorite: lv.isFavorite,
+          isLiked: lv.isLiked,
+          isDisliked: lv.isDisliked,
+          reviews: lv.reviews || []
+        };
+      }
+      return lv;
+    });
+
+    // Add brand new videos from code that didn't exist in user storage
+    const localUrls = new Set(syncedData.map(v => v.url));
+    const newItems = currentSource.filter(v => !localUrls.has(v.url));
+    
+    return [...newItems, ...syncedData];
   });
 
   const [currentVideoId, setCurrentVideoId] = useState<string | undefined>(videos[0]?.id);
 
+  /**
+   * PERSISTENCE SYNC
+   */
   useEffect(() => {
     localStorage.setItem(DATA_KEY, JSON.stringify(videos));
     localStorage.setItem(VERSION_KEY, LIBRARY_VERSION.toString());
     localStorage.setItem(AUTH_KEY, isAuthorized ? 'true' : 'false');
     localStorage.setItem(CAT_KEY, JSON.stringify(categories));
     localStorage.setItem(CAT_COLORS_KEY, JSON.stringify(categoryColors));
+    
+    // Cleanup Legacy Keys once migration is confirmed
+    if (localStorage.getItem(LEGACY_DATA_KEY)) {
+        localStorage.removeItem(LEGACY_DATA_KEY);
+        localStorage.removeItem(LEGACY_VERSION_KEY);
+    }
   }, [videos, isAuthorized, categories, categoryColors]);
 
   const pendingReviewsCount = useMemo(() => {
