@@ -1,48 +1,14 @@
 import { VideoItem, VideoCategory, Review } from '../types';
 
-export const LIBRARY_VERSION = 502;
+export const LIBRARY_VERSION = 503;
 
 /**
  * BASE LIBRARY DATA
- * Populated with high-quality sample signals to ensure persistence in source code.
+ * Initialized as empty to allow for a clean, user-driven library.
+ * Use the 'Developer' tab in the Moderation Terminal to generate code 
+ * for this array after adding videos in the UI.
  */
-const INITIAL_VIDEO_DATA: any[] = [
-  {
-    id: 'v1',
-    prompt: "Golden Hour Serenity - Cinematic Nature",
-    category: 'Meditation',
-    url: '6p_S7P_n8iE',
-    thumbnail: 'https://img.youtube.com/vi/6p_S7P_n8iE/mqdefault.jpg'
-  },
-  {
-    id: 'v2',
-    prompt: "Midnight Snowfall Ambience",
-    category: 'Integral Serenity',
-    url: 'CHSnz0DQw68',
-    thumbnail: 'https://img.youtube.com/vi/CHSnz0DQw68/mqdefault.jpg'
-  },
-  {
-    id: 'v3',
-    prompt: "Deep Space Visual Journey",
-    category: 'Other',
-    url: 'LXO-jKksQkM',
-    thumbnail: 'https://img.youtube.com/vi/LXO-jKksQkM/mqdefault.jpg'
-  },
-  {
-    id: 'v4',
-    prompt: "Ocean Waves 4K - Pacific Coast",
-    category: 'Meditation',
-    url: 'nep76m-M-U0',
-    thumbnail: 'https://img.youtube.com/vi/nep76m-M-U0/mqdefault.jpg'
-  },
-  {
-    id: 'v5',
-    prompt: "Tropical Forest Soundscape",
-    category: 'Permia Community',
-    url: '8_z7pM275X8',
-    thumbnail: 'https://img.youtube.com/vi/8_z7pM275X8/mqdefault.jpg'
-  }
-];
+const INITIAL_VIDEO_DATA: any[] = [];
 
 export const getSampleLibrary = (): VideoItem[] => {
   return INITIAL_VIDEO_DATA.map((item, idx) => ({
@@ -53,19 +19,10 @@ export const getSampleLibrary = (): VideoItem[] => {
     likeCount: Math.floor(Math.random() * 500) + 20,
     dislikeCount: Math.floor(Math.random() * 50),
     rating: 4.5,
-    isFavorite: idx < 2, 
+    isFavorite: false, 
     isLiked: false,
     isDisliked: false,
-    reviews: [
-      {
-        id: `r-${idx}-1`,
-        user: 'NeuralSystem',
-        rating: 5,
-        text: 'Optimal signal quality detected. Highly recommended for focus.',
-        timestamp: Date.now() - 500000,
-        isApproved: true
-      }
-    ]
+    reviews: []
   }));
 };
 
