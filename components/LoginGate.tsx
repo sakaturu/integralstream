@@ -1,16 +1,38 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
 interface LoginGateProps {
   onLogin: (pass: string, remember: boolean) => boolean;
+  onIdentify: (name: string, remember: boolean) => boolean;
+  onRestore: (key: string) => boolean;
   onForget?: () => void;
   onClose?: () => void;
+  defaultName?: string;
+  isIdentityLocked?: boolean;
 }
 
-const LoginGate: React.FC<LoginGateProps> = ({ onLogin, onForget, onClose }) => {
+const LoginGate: React.FC<LoginGateProps> = ({ 
+  onLogin, 
+  onIdentify, 
+  onRestore, 
+  onForget, 
+  onClose, 
+  defaultName = '',
+  isIdentityLocked = false 
+}) => {
+  const [activeTab, setActiveTab] = useState<'Identify' | 'Terminal' | 'Restore'>(
+    isIdentityLocked ? 'Terminal' : 'Identify'
+  );
   const [pass, setPass] = useState('');
+  const [personaName, setPersonaName] = useState(defaultName);
+  const [nodeKey, setNodeKey] = useState('');
   const [remember, setRemember] = useState(true); 
   const [error, setError] = useState(false);
   const [isVerifying, setIsVerifying] = useState(false);
+  const [restoreSuccess, setRestoreSuccess] = useState(false);
+
+  useEffect(() => {
+    if (defaultName) setPersonaName(defaultName);
+  }, [defaultName]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -20,13 +42,24 @@ const LoginGate: React.FC<LoginGateProps> = ({ onLogin, onForget, onClose }) => 
     setError(false);
     
     setTimeout(() => {
-      const success = onLogin(pass, remember);
+      let success = false;
+      if (activeTab === 'Identify') {
+        success = onIdentify(personaName, remember);
+      } else if (activeTab === 'Terminal') {
+        success = onLogin(pass, remember);
+      } else {
+        success = onRestore(nodeKey);
+      }
+
       if (!success) {
         setError(true);
         setIsVerifying(false);
         setPass('');
+      } else if (activeTab === 'Restore') {
+        setRestoreSuccess(true);
+        setTimeout(() => onClose?.(), 1000);
       }
-    }, 1200);
+    }, 1000);
   };
 
   return (
@@ -40,34 +73,81 @@ const LoginGate: React.FC<LoginGateProps> = ({ onLogin, onForget, onClose }) => 
             <i className="fa-solid fa-xmark"></i>
           </button>
         )}
-        <h1 className="text-xl font-black text-white uppercase tracking-[0.3em] mb-1 leading-none">TERMINAL ACCESS</h1>
-        <p className="text-[8px] font-bold text-blue-500 uppercase tracking-[0.5em] animate-pulse">Global Admin Handshake</p>
+        <h1 className="text-xl font-black text-white uppercase tracking-[0.3em] mb-1 leading-none">ARCHIVE ACCESS</h1>
+        <p className="text-[8px] font-bold text-blue-500 uppercase tracking-[0.5em] animate-pulse">Neural Handshake Required</p>
       </div>
 
       <div className="glass p-8 rounded-[2rem] border border-white/10 shadow-[0_50px_100px_-20px_rgba(0,0,0,0.5)] space-y-6 relative overflow-hidden group">
         <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-blue-500 to-transparent opacity-30"></div>
         
+        <div className="flex bg-black/40 p-1 rounded-xl border border-white/5 mb-2">
+           {!isIdentityLocked && (
+             <button 
+              onClick={() => { setActiveTab('Identify'); setError(false); }}
+              className={`flex-1 py-2 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all ${activeTab === 'Identify' ? 'bg-red-600 text-white shadow-lg' : 'text-slate-500 hover:text-white'}`}
+             >
+              Identify
+             </button>
+           )}
+           <button 
+            onClick={() => { setActiveTab('Terminal'); setError(false); }}
+            className={`flex-1 py-2 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all ${activeTab === 'Terminal' ? 'bg-white text-slate-950 shadow-lg' : 'text-slate-500 hover:text-white'}`}
+           >
+            Admin
+           </button>
+           <button 
+            onClick={() => { setActiveTab('Restore'); setError(false); }}
+            className={`flex-1 py-2 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all ${activeTab === 'Restore' ? 'bg-blue-600 text-white shadow-lg' : 'text-slate-500 hover:text-white'}`}
+           >
+            Restore
+           </button>
+        </div>
+
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="space-y-4">
             <div className="flex items-center justify-between px-1">
               <label className="text-[8px] font-black text-slate-500 uppercase tracking-widest flex items-center gap-2">
-                <i className="fa-solid fa-key"></i>
-                Security Token
+                <i className={`fa-solid ${activeTab === 'Identify' ? 'fa-user' : activeTab === 'Terminal' ? 'fa-key' : 'fa-dna'}`}></i>
+                {activeTab === 'Identify' ? 'Persona Identifier' : activeTab === 'Terminal' ? 'Security Token' : 'Neural Node Key'}
               </label>
-              {error && <span className="text-[8px] font-black text-red-500 uppercase tracking-widest animate-bounce">Verification Failed</span>}
+              {error && <span className="text-[8px] font-black text-red-500 uppercase tracking-widest animate-bounce">Access Denied</span>}
             </div>
             
             <div className="relative">
-              <input 
-                autoFocus
-                required
-                type="password"
-                placeholder="ENTER ADMIN TOKEN..."
-                value={pass}
-                onChange={(e) => setPass(e.target.value)}
-                disabled={isVerifying}
-                className={`w-full bg-slate-950/80 border ${error ? 'border-red-500' : 'border-white/10'} rounded-xl px-6 py-4 text-center text-base tracking-[0.4em] text-white focus:outline-none focus:border-blue-500 transition-all font-mono placeholder:tracking-normal placeholder:text-[9px] placeholder:font-black placeholder:uppercase placeholder:text-slate-800`}
-              />
+              {activeTab === 'Identify' ? (
+                <input 
+                  autoFocus
+                  required
+                  type="text"
+                  placeholder="USERNAME..."
+                  value={personaName}
+                  onChange={(e) => setPersonaName(e.target.value.toUpperCase())}
+                  disabled={isVerifying}
+                  className={`w-full bg-slate-950/80 border ${error ? 'border-red-500' : 'border-white/10'} rounded-xl px-6 py-4 text-center text-base tracking-[0.2em] text-white focus:outline-none focus:border-red-500/50 transition-all font-mono placeholder:tracking-normal placeholder:text-[9px] placeholder:font-black`}
+                />
+              ) : activeTab === 'Terminal' ? (
+                <input 
+                  autoFocus
+                  required
+                  type="password"
+                  placeholder="TOKEN ID..."
+                  value={pass}
+                  onChange={(e) => setPass(e.target.value)}
+                  disabled={isVerifying}
+                  className={`w-full bg-slate-950/80 border ${error ? 'border-red-500' : 'border-white/10'} rounded-xl px-6 py-4 text-center text-base tracking-[0.4em] text-white focus:outline-none focus:border-blue-500 transition-all font-mono placeholder:tracking-normal placeholder:text-[9px] placeholder:font-black`}
+                />
+              ) : (
+                <input 
+                  autoFocus
+                  required
+                  type="text"
+                  placeholder="INT-XXXX-XX..."
+                  value={nodeKey}
+                  onChange={(e) => setNodeKey(e.target.value.toUpperCase())}
+                  disabled={isVerifying}
+                  className={`w-full bg-slate-950/80 border ${error ? 'border-red-500' : 'border-white/10'} rounded-xl px-6 py-4 text-center text-base tracking-[0.1em] text-white focus:outline-none focus:border-blue-500 transition-all font-mono placeholder:tracking-normal placeholder:text-[9px]`}
+                />
+              )}
             </div>
           </div>
 
@@ -80,43 +160,29 @@ const LoginGate: React.FC<LoginGateProps> = ({ onLogin, onForget, onClose }) => 
                   checked={remember}
                   onChange={(e) => setRemember(e.target.checked)}
                 />
-                <div className={`absolute inset-0 rounded-full transition-all duration-300 ${remember ? 'bg-blue-600 shadow-[0_0_12px_rgba(37,99,235,0.6)]' : 'bg-slate-900'}`}></div>
-                <div className={`absolute top-1 left-1 w-4 h-4 rounded-full bg-white shadow-md transition-all duration-300 transform ${remember ? 'translate-x-4' : 'translate-x-0'}`}></div>
+                <div className={`absolute inset-0 rounded-full transition-all duration-300 ${remember ? 'bg-red-600 shadow-[0_0_12px_rgba(239,68,68,0.4)]' : 'bg-slate-900'}`}></div>
+                <div className={`absolute top-1 left-1 w-4 h-4 rounded-full bg-white transition-all duration-300 transform ${remember ? 'translate-x-4' : 'translate-x-0'}`}></div>
               </div>
-              <div className="flex flex-col ml-3">
-                <span className={`text-[8px] font-black uppercase tracking-widest transition-colors ${remember ? 'text-blue-400' : 'text-slate-500 group-hover/toggle:text-slate-400'}`}>
-                  Trust Node
-                </span>
-                <span className="text-[6px] font-bold text-slate-800 uppercase tracking-widest">Persist Session</span>
-              </div>
+              <span className={`text-[8px] font-black uppercase tracking-widest ml-3 ${remember ? 'text-red-400' : 'text-slate-500'}`}>
+                Persist Persona
+              </span>
             </label>
-
-            {onForget && (
-              <button 
-                type="button" 
-                onClick={onForget}
-                className="text-[7px] font-black text-slate-700 hover:text-red-500 transition-colors uppercase tracking-[0.2em] border-b border-white/5 hover:border-red-500/20 pb-0.5"
-              >
-                Clear Data
-              </button>
-            )}
           </div>
 
           <button 
             type="submit"
-            disabled={isVerifying || !pass}
+            disabled={isVerifying || (activeTab === 'Terminal' ? !pass : activeTab === 'Identify' ? !personaName : !nodeKey)}
             className={`w-full py-4 rounded-xl text-[9px] font-black uppercase tracking-[0.4em] transition-all relative overflow-hidden shadow-xl ${
               isVerifying 
-              ? 'bg-blue-600/20 text-blue-400 border border-blue-500/20 cursor-wait' 
-              : 'bg-white text-slate-950 hover:bg-blue-50 active:scale-95 disabled:opacity-30'
+              ? 'bg-slate-800 text-slate-500 cursor-wait' 
+              : restoreSuccess 
+              ? 'bg-green-600 text-white'
+              : activeTab === 'Identify' 
+              ? 'bg-red-600 text-white hover:bg-red-500'
+              : 'bg-white text-slate-950 hover:bg-blue-50'
             }`}
           >
-            {isVerifying ? (
-              <span className="flex items-center justify-center gap-3">
-                <div className="w-3 h-3 border-2 border-blue-500/20 border-t-blue-500 rounded-full animate-spin"></div>
-                Verifying Access...
-              </span>
-            ) : 'Authorize Terminal'}
+            {isVerifying ? 'SYNCING MATRIX...' : restoreSuccess ? 'NODE RESTORED' : activeTab === 'Identify' ? 'INITIALIZE NODE' : 'AUTHORIZE ACCESS'}
           </button>
         </form>
       </div>

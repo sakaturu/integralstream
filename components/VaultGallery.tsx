@@ -12,6 +12,7 @@ interface VaultGalleryProps {
   onRemove: (id: string) => void;
   onMoveVideo: (id: string, direction: 'up' | 'down') => void;
   isAuthorized: boolean;
+  currentUser: string;
 }
 
 const VaultGallery: React.FC<VaultGalleryProps> = ({ 
@@ -24,7 +25,8 @@ const VaultGallery: React.FC<VaultGalleryProps> = ({
   onToggleFavorite,
   onRemove,
   onMoveVideo,
-  isAuthorized
+  isAuthorized,
+  currentUser
 }) => {
   const [confirmingDeleteId, setConfirmingDeleteId] = useState<string | null>(null);
 
@@ -57,8 +59,9 @@ const VaultGallery: React.FC<VaultGalleryProps> = ({
           <div className="flex flex-col">
             <h3 className="text-[13px] font-black text-slate-400 uppercase tracking-[0.2em] flex items-center gap-2">
               <i className="fa-solid fa-vault text-red-600"></i>
-              FAVORITE VAULT
+              {currentUser.replace(/_/g, ' ')}'S ARCHIVE
             </h3>
+            <p className="text-[8px] font-bold text-slate-600 uppercase tracking-widest mt-1 pl-6">Secure Neural Persona Data</p>
           </div>
           <button 
             onClick={onClose}
@@ -72,7 +75,7 @@ const VaultGallery: React.FC<VaultGalleryProps> = ({
           {videos.length === 0 ? (
             <div className="py-20 text-center opacity-40">
               <i className="fa-solid fa-heart-crack text-4xl mb-4 text-slate-700"></i>
-              <p className="text-[10px] font-black uppercase tracking-widest text-slate-500">No signals currently vaulted.</p>
+              <p className="text-[10px] font-black uppercase tracking-widest text-slate-500">No signals currently vaulted for {currentUser}.</p>
             </div>
           ) : (
             videos.map((video, idx) => {
@@ -87,23 +90,6 @@ const VaultGallery: React.FC<VaultGalleryProps> = ({
                     : 'bg-transparent border-transparent hover:bg-white/5'
                   }`}
                 >
-                  {isAuthorized && video.status === 'ready' && (
-                    <div className="flex flex-col items-center justify-center gap-1.5 opacity-20 group-hover:opacity-100 transition-opacity pr-1">
-                      <button 
-                        onClick={(e) => { e.stopPropagation(); onMoveVideo(video.id, 'up'); }} 
-                        className={`transition-all hover:scale-125 active:scale-90 text-slate-400 hover:text-blue-500 ${idx === 0 ? 'invisible' : ''}`}
-                      >
-                        <i className="fa-solid fa-chevron-up text-[9px]"></i>
-                      </button>
-                      <button 
-                        onClick={(e) => { e.stopPropagation(); onMoveVideo(video.id, 'down'); }} 
-                        className={`transition-all hover:scale-125 active:scale-90 text-slate-400 hover:text-blue-500 ${idx === videos.length - 1 ? 'invisible' : ''}`}
-                      >
-                        <i className="fa-solid fa-chevron-down text-[9px]"></i>
-                      </button>
-                    </div>
-                  )}
-
                   <div className={`w-24 h-14 rounded-xl bg-slate-900 flex-shrink-0 overflow-hidden relative shadow-2xl border transition-all duration-500 ease-out group-hover:scale-[1.03] group-hover:-translate-y-1 group-hover:shadow-[0_12px_24px_-8px_rgba(0,0,0,0.6)] ${currentVideo?.id === video.id ? 'border-blue-500/30' : 'border-white/5'}`}>
                     <img src={getThumbnailUrl(video)} className="w-full h-full object-cover grayscale-[0.3] group-hover:grayscale-0 transition-all duration-500" alt="" />
                     <div className={`absolute inset-0 flex items-center justify-center transition-all duration-300 ${currentVideo?.id === video.id ? 'bg-blue-600/30' : 'bg-black/0 group-hover:bg-black/20'}`}>
@@ -133,37 +119,28 @@ const VaultGallery: React.FC<VaultGalleryProps> = ({
                         <span className="text-blue-500 flex items-center gap-1 shrink-0">
                           Likes:: <span className="text-slate-300 text-[12px]">{video.likeCount.toLocaleString()}</span>
                         </span>
-                        <span className="text-purple-500 flex items-center gap-1 shrink-0">
-                          Reviews:: <span className="text-slate-300 text-[12px]">{(video.reviews?.length || 0).toLocaleString()}</span>
-                        </span>
                       </div>
                     </div>
                   </div>
 
-                  {isAuthorized && (
-                    <div className="absolute top-0 bottom-0 right-3 py-3 flex flex-col items-center justify-center z-30 opacity-30 group-hover:opacity-100 transition-opacity">
-                      <button 
-                        onClick={(e) => { e.stopPropagation(); setConfirmingDeleteId(video.id); }} 
-                        className="text-slate-400 hover:text-red-500 transition-all hover:scale-125 active:scale-90"
-                        data-tooltip="EJECT FROM VAULT"
-                      >
-                        <i className="fa-solid fa-xmark text-[13px]"></i>
-                      </button>
-                    </div>
-                  )}
+                  <div className="absolute top-0 bottom-0 right-3 py-3 flex flex-col items-center justify-center z-30 opacity-30 group-hover:opacity-100 transition-opacity">
+                    <button 
+                      onClick={(e) => { e.stopPropagation(); setConfirmingDeleteId(video.id); }} 
+                      className="text-slate-400 hover:text-red-500 transition-all hover:scale-125 active:scale-90"
+                    >
+                      <i className="fa-solid fa-xmark text-[13px]"></i>
+                    </button>
+                  </div>
 
-                  {confirmingDeleteId === video.id && isAuthorized && (
+                  {confirmingDeleteId === video.id && (
                     <div className="absolute inset-0 z-50 bg-[#0f172a]/95 backdrop-blur-xl rounded-2xl flex items-center justify-between px-6 animate-fade-in border border-red-500/20" onClick={(e) => e.stopPropagation()}>
                       <div className="flex flex-col">
-                        <span className="text-[10px] font-black text-red-500 uppercase tracking-widest flex items-center gap-2">
-                          <i className="fa-solid fa-door-open animate-pulse"></i>
-                          Eviction Protocol
-                        </span>
-                        <span className="text-[8px] font-bold text-slate-500 uppercase tracking-widest mt-0.5">Remove from Favorite Vault</span>
+                        <span className="text-[10px] font-black text-red-500 uppercase tracking-widest">Eviction Protocol</span>
+                        <span className="text-[8px] font-bold text-slate-500 uppercase tracking-widest mt-0.5">Remove from vault</span>
                       </div>
-                      <div className="flex flex-col gap-1.5">
-                        <button onClick={() => setConfirmingDeleteId(null)} className="px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-[8px] font-black uppercase tracking-widest text-slate-400 hover:text-white transition-all">Abort</button>
-                        <button onClick={(e) => { e.stopPropagation(); onToggleFavorite(video.id); setConfirmingDeleteId(null); }} className="px-4 py-2 rounded-xl bg-red-600 text-white text-[8px] font-black uppercase tracking-widest shadow-lg hover:bg-red-500 transition-all active:scale-95">Confirm Eviction</button>
+                      <div className="flex gap-2">
+                        <button onClick={() => setConfirmingDeleteId(null)} className="px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-[8px] font-black uppercase tracking-widest text-slate-400">Abort</button>
+                        <button onClick={(e) => { e.stopPropagation(); onToggleFavorite(video.id); setConfirmingDeleteId(null); }} className="px-4 py-2 rounded-xl bg-red-600 text-white text-[8px] font-black uppercase tracking-widest shadow-lg">Confirm</button>
                       </div>
                     </div>
                   )}
