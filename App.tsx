@@ -13,8 +13,8 @@ const VERSION_KEY = `integral_version_v${LIBRARY_VERSION}`;
 const AUTH_KEY = 'integral_v411_auth';
 const CAT_KEY = `integral_categories_v${LIBRARY_VERSION}`;
 const CAT_COLORS_KEY = `integral_cat_colors_v${LIBRARY_VERSION}`;
-const USER_KEY = 'integral_active_user';
-const USER_LOCKED_KEY = 'integral_user_locked';
+const USER_KEY = 'integral_active_user_v2';
+const USER_LOCKED_KEY = 'integral_user_locked_v2';
 const FAV_MAP_KEY = 'integral_user_fav_map';
 const ADMIN_PASSWORD = 'ADMIN';
 
@@ -58,7 +58,7 @@ const App: React.FC = () => {
     return localStorage.getItem(AUTH_KEY) === 'true';
   });
   
-  // User Personalization State
+  // User Identity State - Immediate Sync Logic
   const [currentUser, setCurrentUser] = useState<string>(() => {
     return localStorage.getItem(USER_KEY) || 'NEURAL_NODE_01';
   });
@@ -86,7 +86,7 @@ const App: React.FC = () => {
   const playerContainerRef = useRef<HTMLDivElement>(null);
   const checkSyncLock = useRef(false);
 
-  // Persistence Effects - Triggered whenever name or lock status changes
+  // Identity Persistence Hook - Aggressive save
   useEffect(() => {
     localStorage.setItem(USER_KEY, currentUser);
     localStorage.setItem(USER_LOCKED_KEY, isUserLocked ? 'true' : 'false');
@@ -244,17 +244,25 @@ const App: React.FC = () => {
   const handleRemoveCategory = (name: string) => { setCategories(prev => prev.filter(c => c !== name)); if (playlistTab === name) setPlaylistTab('All'); };
   const handleUpdateCategoryColor = (category: string, color: string) => { setCategoryColors(prev => ({ ...prev, [category]: color })); };
 
-  // Identity logic refined for immediate storage and permanent locking
+  // Improved Identity logic for total persistence
   const handleLockIdentity = () => {
     if (currentUser.trim()) {
+      const finalName = currentUser.trim();
+      setCurrentUser(finalName);
       setIsUserLocked(true);
       setIsEditingUser(false);
+      // Explicit one-time force save to be absolutely sure
+      localStorage.setItem(USER_KEY, finalName);
+      localStorage.setItem(USER_LOCKED_KEY, 'true');
     }
   };
 
   const handleIdentityChange = (val: string) => {
     if (!isUserLocked) {
-      setCurrentUser(val.toUpperCase().replace(/\s+/g, '_'));
+      const processed = val.toUpperCase().replace(/\s+/g, '_');
+      setCurrentUser(processed);
+      // Immediate save to localStorage on every change
+      localStorage.setItem(USER_KEY, processed);
     }
   };
 
@@ -303,23 +311,28 @@ const App: React.FC = () => {
             </div>
             
             {isEditingUser && !isUserLocked && (
-              <div className="absolute top-16 right-0 w-64 bg-slate-900 border border-white/10 p-4 rounded-2xl shadow-2xl z-[100] animate-fade-in">
-                <p className="text-[9px] font-black text-slate-500 uppercase tracking-widest mb-3">Identity Setup</p>
+              <div className="absolute top-16 right-0 w-64 bg-slate-900 border border-white/10 p-5 rounded-3xl shadow-2xl z-[100] animate-fade-in ring-1 ring-white/10">
+                <div className="flex items-center justify-between mb-4">
+                  <p className="text-[9px] font-black text-slate-500 uppercase tracking-widest">Initialization Matrix</p>
+                  <button onClick={() => setIsEditingUser(false)} className="text-[8px] font-black text-slate-600 hover:text-white uppercase">Close</button>
+                </div>
                 <input 
                   autoFocus
                   type="text" 
                   value={currentUser} 
                   onChange={(e) => handleIdentityChange(e.target.value)}
                   onKeyDown={(e) => e.key === 'Enter' && handleLockIdentity()}
-                  className="w-full bg-black border border-white/10 rounded-xl px-4 py-2 text-[10px] text-white focus:outline-none focus:border-red-500/40"
-                  placeholder="USERNAME..."
+                  className="w-full bg-black border border-white/10 rounded-xl px-4 py-3 text-[11px] text-white focus:outline-none focus:border-red-500/40 transition-all font-mono"
+                  placeholder="ID_NAME..."
                 />
-                <p className="text-[7px] font-bold text-slate-600 uppercase mt-2">Personalizes your vault instantly.</p>
+                <div className="mt-4 p-3 bg-red-500/5 rounded-xl border border-red-500/10">
+                   <p className="text-[7px] font-black text-red-500/60 uppercase leading-tight">Permanent seal: Once initialized, this identity becomes the master key for your local vault.</p>
+                </div>
                 <button 
                   onClick={handleLockIdentity}
-                  className="w-full mt-4 py-2 bg-red-600 text-white rounded-lg text-[8px] font-black uppercase tracking-widest hover:bg-red-500 transition-colors"
+                  className="w-full mt-4 py-3 bg-red-600 text-white rounded-xl text-[9px] font-black uppercase tracking-[0.2em] hover:bg-red-500 transition-all shadow-lg active:scale-95"
                 >
-                  Lock Identity Permanently
+                  Initialize Node
                 </button>
               </div>
             )}
@@ -409,7 +422,7 @@ const App: React.FC = () => {
                       <div className="flex items-center gap-2"><span className="text-[10px] font-black text-orange-500 uppercase tracking-widest">Views::</span><span className="text-[13px] font-black text-white">{currentVideo.viewCount.toLocaleString()}</span></div>
                       <div className="flex items-center gap-2"><span className="text-[10px] font-black text-blue-500 uppercase tracking-widest">Likes::</span><span className="text-[13px] font-black text-white">{currentVideo.likeCount.toLocaleString()}</span></div>
                       <button onClick={() => { setReviewInitialTab('Read'); setActiveSecondaryView('reviews'); }} className="text-[10px] font-black uppercase tracking-widest text-purple-500 hover:text-purple-400 flex items-center gap-2 transition-colors"><i className="fa-solid fa-message text-[11px]"></i><span>Reviews::</span><span className="text-[13px] font-black text-white ml-0.5">{(currentVideo.reviews?.length || 0).toLocaleString()}</span></button>
-                      <button onClick={() => setActiveSecondaryView(v => v === 'vault' ? 'none' : 'vault')} className="text-[10px] font-black uppercase tracking-widest text-red-500 hover:text-red-400 flex items-center gap-2 transition-colors"><i className="fa-solid fa-heart text-[11px]"></i><span>{isUserLocked ? (currentUser === 'NEURAL_NODE_01' ? 'Vault' : `${currentUser}'S VAULT`) : 'Vault'}::</span><span className="text-[13px] font-black text-white ml-0.5">{vaultCount.toLocaleString()}</span></button>
+                      <button onClick={() => setActiveSecondaryView(v => v === 'vault' ? 'none' : 'vault')} className="text-[10px] font-black uppercase tracking-widest text-red-500 hover:text-red-400 flex items-center gap-2 transition-colors"><i className="fa-solid fa-heart text-[11px]"></i><span>{isUserLocked ? (currentUser === 'NEURAL_NODE_01' ? 'Vault' : `${currentUser.replace(/_/g, ' ')}'S VAULT`) : 'Vault'}::</span><span className="text-[13px] font-black text-white ml-0.5">{vaultCount.toLocaleString()}</span></button>
                     </div>
                   </div>
                 </div>
@@ -444,7 +457,15 @@ const App: React.FC = () => {
 
       {showLoginOverlay && (
         <div className="fixed inset-0 z-[100] bg-black/60 flex items-center justify-center p-6 backdrop-blur-md">
-          <LoginGate onLogin={(p) => { if(p === ADMIN_PASSWORD) { setIsAuthorized(true); setShowLoginOverlay(false); return true; } return false; }} onClose={() => setShowLoginOverlay(false)} />
+          <LoginGate onLogin={(p, remember) => { 
+            if(p === ADMIN_PASSWORD) { 
+              setIsAuthorized(true); 
+              if (remember) localStorage.setItem(AUTH_KEY, 'true');
+              setShowLoginOverlay(false); 
+              return true; 
+            } 
+            return false; 
+          }} onClose={() => setShowLoginOverlay(false)} />
         </div>
       )}
     </div>
