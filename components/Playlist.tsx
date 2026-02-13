@@ -202,7 +202,6 @@ const Playlist: React.FC<PlaylistProps> = ({
 
   const renderTab = (tab: { name: string }) => {
     const isDeletable = isAuthorized && !['All', 'Vault'].includes(tab.name);
-    const isActive = activeTab === tab.name;
     
     return (
       <div key={tab.name} className="relative group/tab">
@@ -251,7 +250,7 @@ const Playlist: React.FC<PlaylistProps> = ({
               <button 
                 onClick={() => setShowAddForm(!showAddForm)}
                 className={`w-9 h-9 flex items-center justify-center rounded-full shadow-lg transition-all border border-white/10 z-30 cursor-pointer ${
-                  showAddForm ? 'bg-red-600/20 text-red-500 border-red-500/40 rotate-45' : 'bg-blue-600 text-white hover:bg-blue-500 shadow-[0_0_20px_rgba(37,99,235,0.4)]'
+                  showAddForm ? 'bg-red-600/20 text-red-500 border-red-500/40 rotate-45' : 'bg-blue-600 text-white hover:bg-blue-50 shadow-[0_0_20px_rgba(37,99,235,0.4)]'
                 }`}
               >
                 <i className="fa-solid fa-plus text-sm"></i>
@@ -450,14 +449,18 @@ const Playlist: React.FC<PlaylistProps> = ({
               </p>
               <div className="flex items-center gap-1.5 w-full">
                 <span className={`text-[9px] font-black uppercase px-1.5 py-0.5 rounded-md border shrink-0 transition-all`} style={getTagStyles(video.category)}>{video.category}</span>
-                <div className="flex items-center gap-1.5 text-[9px] font-black uppercase tracking-widest shrink-0 border-l border-white/5 pl-1.5 overflow-x-auto custom-scrollbar no-scrollbar">
+                <div className="flex items-center gap-2.5 text-[9px] font-black uppercase tracking-widest shrink-0 border-l border-white/5 pl-2 overflow-x-auto custom-scrollbar no-scrollbar">
                   <div className="flex items-center gap-1 shrink-0">
-                    <span className="text-orange-500">Viewed</span>
-                    <span className="text-slate-400">{formatCount(video.viewCount)}</span>
+                    <span className="text-orange-500">Views::</span>
+                    <span className="text-slate-300">{formatCount(video.viewCount)}</span>
                   </div>
                   <div className="flex items-center gap-1 shrink-0">
-                    <span className="text-blue-500">Liked</span>
-                    <span className="text-slate-400">{formatCount(video.likeCount)}</span>
+                    <span className="text-blue-500">Likes::</span>
+                    <span className="text-slate-300">{formatCount(video.likeCount)}</span>
+                  </div>
+                  <div className="flex items-center gap-1 shrink-0">
+                    <span className="text-purple-500">Reviews::</span>
+                    <span className="text-slate-300">{formatCount(video.reviews?.length || 0)}</span>
                   </div>
                 </div>
               </div>

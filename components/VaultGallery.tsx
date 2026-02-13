@@ -126,12 +126,15 @@ const VaultGallery: React.FC<VaultGalleryProps> = ({
                         {video.category}
                       </span>
 
-                      <div className="flex items-center gap-2 text-[11px] font-black uppercase tracking-widest shrink-0 border-l border-white/10 pl-2 overflow-x-auto custom-scrollbar no-scrollbar">
+                      <div className="flex items-center gap-3 text-[10px] font-black uppercase tracking-widest shrink-0 border-l border-white/10 pl-2 overflow-x-auto custom-scrollbar no-scrollbar">
                         <span className="text-orange-500 flex items-center gap-1 shrink-0">
-                          VIEWED:: <span className="text-slate-400 text-[12px]">{video.viewCount.toLocaleString()}</span>
+                          Views:: <span className="text-slate-300 text-[12px]">{video.viewCount.toLocaleString()}</span>
                         </span>
                         <span className="text-blue-500 flex items-center gap-1 shrink-0">
-                          LIKED:: <span className="text-slate-400 text-[12px]">{video.likeCount.toLocaleString()}</span>
+                          Likes:: <span className="text-slate-300 text-[12px]">{video.likeCount.toLocaleString()}</span>
+                        </span>
+                        <span className="text-purple-500 flex items-center gap-1 shrink-0">
+                          Reviews:: <span className="text-slate-300 text-[12px]">{(video.reviews?.length || 0).toLocaleString()}</span>
                         </span>
                       </div>
                     </div>

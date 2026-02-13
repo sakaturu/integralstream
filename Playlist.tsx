@@ -9,6 +9,7 @@ interface PlaylistProps {
   onSelect: (video: VideoItem) => void;
   onRemove: (id: string) => void;
   onToggleFavorite: (id: string) => void;
+  userFavorites: string[];
   onMoveVideo: (id: string, direction: 'up' | 'down') => void;
   onAddRandom: () => void;
   isGeneratingRandom?: boolean;
@@ -19,7 +20,6 @@ interface PlaylistProps {
   onPurgeAll: () => void;
   activeTab: VideoCategory | 'All' | 'Vault';
   setActiveTab: (tab: VideoCategory | 'All' | 'Vault') => void;
-  onHoverTab?: (tab: VideoCategory | 'All' | 'Vault' | null) => void;
   isAuthorized: boolean;
 }
 
@@ -37,6 +37,7 @@ const Playlist: React.FC<PlaylistProps> = ({
   onSelect, 
   onRemove, 
   onToggleFavorite, 
+  userFavorites,
   onMoveVideo,
   onAddRandom,
   isGeneratingRandom = false,
@@ -47,7 +48,6 @@ const Playlist: React.FC<PlaylistProps> = ({
   onPurgeAll,
   activeTab, 
   setActiveTab, 
-  onHoverTab,
   isAuthorized,
 }) => {
   const [showAddForm, setShowAddForm] = useState(false);
@@ -66,9 +66,7 @@ const Playlist: React.FC<PlaylistProps> = ({
   const urlInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    if (showAddForm && urlInputRef.current) {
-      urlInputRef.current.focus();
-    }
+    if (showAddForm && urlInputRef.current) urlInputRef.current.focus();
   }, [showAddForm]);
 
   const getCleanId = (input: string) => {
@@ -83,21 +81,12 @@ const Playlist: React.FC<PlaylistProps> = ({
   useEffect(() => {
     const videoId = getCleanId(newUrl);
     if (videoId && !newPrompt) {
-      const fetchTitle = async () => {
-        setIsFetchingTitle(true);
-        try {
-          const response = await fetch(`https://noembed.com/embed?url=https://www.youtube.com/watch?v=${videoId}`);
-          const data = await response.json();
-          if (data && data.title) {
-            setNewPrompt(data.title);
-          }
-        } catch (error) {
-          console.error("Failed to fetch YouTube title:", error);
-        } finally {
-          setIsFetchingTitle(false);
-        }
-      };
-      fetchTitle();
+      setIsFetchingTitle(true);
+      fetch(`https://noembed.com/embed?url=https://www.youtube.com/watch?v=${videoId}`)
+        .then(res => res.json())
+        .then(data => { if (data && data.title) setNewPrompt(data.title); })
+        .catch(() => {})
+        .finally(() => setIsFetchingTitle(false));
     }
   }, [newUrl, newPrompt]);
 
@@ -111,9 +100,9 @@ const Playlist: React.FC<PlaylistProps> = ({
 
   const filteredVideos = useMemo(() => {
     if (activeTab === 'All') return videos;
-    if (activeTab === 'Vault') return videos.filter(v => v.isFavorite);
+    if (activeTab === 'Vault') return videos.filter(v => userFavorites.includes(v.id));
     return videos.filter(v => v.category === activeTab);
-  }, [videos, activeTab]);
+  }, [videos, activeTab, userFavorites]);
 
   const allTabs = useMemo(() => {
     const baseTabs = [{ name: 'All' as const }, { name: 'Vault' as const }];
@@ -131,19 +120,12 @@ const Playlist: React.FC<PlaylistProps> = ({
     return 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&q=80&w=200';
   };
 
-  const resetForm = () => {
-    setNewUrl('');
-    setNewPrompt('');
-    setNewCat(null);
-    setShowAddForm(false);
-    setIsAddingCategoryInline(false);
-    setInlineCategoryName('');
-  };
+  const resetForm = () => { setNewUrl(''); setNewPrompt(''); setNewCat(null); setShowAddForm(false); setIsAddingCategoryInline(false); setInlineCategoryName(''); };
 
   const handleInlineSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!newUrl || !newCat) return;
-    onAddManualVideo(newUrl, newPrompt || "Neural Trace", newCat);
+    onAddManualVideo(newUrl, newPrompt || "Trace_X", newCat);
     resetForm();
   };
 
@@ -164,16 +146,12 @@ const Playlist: React.FC<PlaylistProps> = ({
   };
 
   const getTagStyles = (category: string) => {
-    const color = categoryColors[category] || '#64748b';
-    return {
-      color: color,
-      borderColor: `${color}33`,
-      backgroundColor: `${color}0D`,
-    };
+    const color = categoryColors[category] || '#94a3b8';
+    return { color: color, borderColor: `${color}40`, backgroundColor: `${color}1A` };
   };
 
   const getTabThematicColor = (tabName: string) => {
-    if (tabName === 'All') return '#3b82f6';
+    if (tabName === 'All') return '#f8fafc';
     if (tabName === 'Vault') return '#ef4444';
     return categoryColors[tabName] || '#94a3b8';
   };
@@ -181,34 +159,20 @@ const Playlist: React.FC<PlaylistProps> = ({
   const getTabStyles = (tabName: string) => {
     const color = getTabThematicColor(tabName);
     const isActive = activeTab === tabName;
-    
     if (isActive) {
-      return {
-        color: color,
-        backgroundColor: `${color}1A`,
-        borderColor: `${color}4D`,
-        boxShadow: `0 0 12px ${color}33`,
-        transform: 'scale(1.02)'
-      };
+      return { color: color, backgroundColor: `${color}1A`, borderColor: `${color}33`, transform: 'scale(1.02)' };
     }
-    
-    return {
-      color: `${color}80`,
-      borderColor: 'transparent',
-      backgroundColor: 'transparent'
-    };
+    return { color: `${color}80`, borderColor: 'transparent', backgroundColor: 'transparent' };
   };
 
   const renderTab = (tab: { name: string }) => {
     const isDeletable = isAuthorized && !['All', 'Vault'].includes(tab.name);
-    const isActive = activeTab === tab.name;
-    
     return (
       <div key={tab.name} className="relative group/tab">
         <button
           onClick={() => setActiveTab(tab.name as any)}
           style={getTabStyles(tab.name)}
-          className={`w-full h-7 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all flex items-center justify-center px-1 border relative cursor-pointer`}
+          className={`w-full h-7 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all flex items-center justify-center px-1 border relative cursor-pointer`}
         >
           <span className="truncate w-full text-center px-1">{tab.name}</span>
         </button>
@@ -225,45 +189,40 @@ const Playlist: React.FC<PlaylistProps> = ({
   };
 
   return (
-    <div className="flex flex-col h-full relative">
-      <div className="flex-none bg-[#0a0f1e] pb-4 z-20">
+    <div className="flex flex-col h-full relative bg-transparent">
+      <div className="flex-none pb-4 z-20 px-4 pt-6">
         <div className="flex items-center justify-between mb-4 px-1">
-          <h3 className="text-xs font-black text-slate-500 uppercase tracking-[0.2em] flex items-center gap-2">
-            <span className="w-1.5 h-1.5 rounded-full bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.8)]"></span>
-            Video Archive
+          <h3 className="text-[10px] font-black text-red-600 uppercase tracking-[0.2em] flex items-center gap-2">
+            <span className="w-1.5 h-1.5 rounded-full bg-red-600"></span>
+            Library Matrix
           </h3>
           <div className="flex items-center gap-4">
             {isAuthorized && (
-              <button 
-                onClick={() => { if(confirm('Purge all videos? This cannot be undone.')) onPurgeAll(); }}
-                className="text-[9px] font-black uppercase tracking-widest text-red-500 hover:text-white transition-all flex items-center gap-2 cursor-pointer"
-              >
-                <i className="fa-solid fa-trash-can text-[11px]"></i>
-                Purge All
+              <button onClick={() => { if(confirm('Purge all?')) onPurgeAll(); }} className="text-[9px] font-black uppercase tracking-widest text-red-500 hover:text-red-400 transition-all flex items-center gap-2">
+                <i className="fa-solid fa-eraser text-[11px]"></i>
               </button>
             )}
-            <button onClick={onAddRandom} className="text-[9px] font-black uppercase tracking-widest text-blue-500 hover:text-white transition-all flex items-center gap-2 cursor-pointer">
-              <i className="fa-solid fa-brain text-[11px]"></i>
-              Surprise Me
+            <button onClick={onAddRandom} className="text-[9px] font-black uppercase tracking-widest text-slate-400 hover:text-white transition-all flex items-center gap-2">
+              <i className="fa-solid fa-wand-magic-sparkles text-[11px]"></i>
             </button>
             {isAuthorized && (
               <button 
                 onClick={() => setShowAddForm(!showAddForm)}
-                className={`w-9 h-9 flex items-center justify-center rounded-full shadow-lg transition-all border border-white/10 z-30 cursor-pointer ${
-                  showAddForm ? 'bg-red-600/20 text-red-500 border-red-500/40 rotate-45' : 'bg-blue-600 text-white hover:bg-blue-500 shadow-[0_0_20px_rgba(37,99,235,0.4)]'
+                className={`w-8 h-8 flex items-center justify-center rounded-lg transition-all border shadow-lg z-30 ${
+                  showAddForm ? 'bg-red-500/10 text-red-500 border-red-500/20 rotate-45' : 'bg-white text-black border-white hover:bg-slate-100'
                 }`}
               >
-                <i className="fa-solid fa-plus text-sm"></i>
+                <i className="fa-solid fa-plus text-xs"></i>
               </button>
             )}
           </div>
         </div>
 
         <div className="flex flex-col gap-2">
-          <div className="bg-slate-900/80 backdrop-blur-md rounded-2xl border border-white/10 shadow-lg p-1">
+          <div className="bg-black/40 rounded-xl border border-white/5 shadow-inner p-1">
             <div className="flex items-center gap-1">
               <div className="grid grid-cols-4 gap-1 flex-1">{firstRowTabs.map(renderTab)}</div>
-              <button onClick={() => setIsExpanded(!isExpanded)} className={`w-9 h-7 flex-shrink-0 flex items-center justify-center rounded-lg border border-white/5 transition-all duration-500 cursor-pointer ${isExpanded ? 'bg-blue-600 text-white rotate-180 shadow-[0_0_10px_rgba(37,99,235,0.3)]' : 'bg-white/5 text-slate-500 hover:text-white'}`}>
+              <button onClick={() => setIsExpanded(!isExpanded)} className={`w-8 h-7 flex-shrink-0 flex items-center justify-center rounded-lg border border-white/5 transition-all duration-300 ${isExpanded ? 'bg-white/10 text-white rotate-180' : 'bg-transparent text-slate-700'}`}>
                 <i className="fa-solid fa-chevron-down text-[10px]"></i>
               </button>
             </div>
@@ -275,106 +234,40 @@ const Playlist: React.FC<PlaylistProps> = ({
           </div>
 
           {isAuthorized && showAddForm && (
-            <div className="animate-fade-in bg-[#0f172a] border border-blue-500/20 rounded-3xl p-6 mt-2 shadow-2xl space-y-4 relative">
+            <div className="animate-fade-in bg-slate-900/90 border border-white/10 rounded-2xl p-6 mt-2 shadow-2xl space-y-4">
               <div className="flex flex-col gap-2">
-                <h4 className="text-[10px] font-black text-blue-400 uppercase tracking-[0.4em]">Add New Video</h4>
-                
+                <h4 className="text-[10px] font-black text-slate-500 uppercase tracking-[0.3em]">Manual Injection</h4>
                 {!isAddingCategoryInline && (
-                  <button 
-                    type="button" 
-                    onClick={() => setIsAddingCategoryInline(true)}
-                    className="w-full h-8 rounded-xl bg-blue-500/5 border border-dashed border-blue-500/30 flex items-center justify-center gap-2 text-blue-500 hover:bg-blue-500/10 hover:text-blue-400 transition-all cursor-pointer group"
-                  >
-                    <i className="fa-solid fa-plus text-[10px] group-hover:scale-125 transition-transform"></i>
-                    <span className="text-[8px] font-black uppercase tracking-widest">Create New Category</span>
+                  <button type="button" onClick={() => setIsAddingCategoryInline(true)} className="w-full h-8 rounded-lg bg-white/5 border border-dashed border-white/10 flex items-center justify-center gap-2 text-slate-500 hover:bg-white/10 hover:text-white transition-all">
+                    <span className="text-[8px] font-black uppercase tracking-widest">Add Category</span>
                   </button>
                 )}
               </div>
-
               {isAddingCategoryInline && (
-                <div className="animate-fade-in bg-blue-600/5 p-4 rounded-2xl border border-blue-500/20 space-y-3">
-                  <div className="flex items-center justify-between">
-                    <span className="text-[8px] font-black text-blue-400 uppercase tracking-widest">Matrix Constructor</span>
-                    <button type="button" onClick={() => setIsAddingCategoryInline(false)} className="text-[8px] text-slate-500 hover:text-white uppercase font-black">Abort</button>
-                  </div>
-                  
-                  <form onSubmit={handleAddCategoryInline} className="space-y-4">
-                    <div className="flex gap-2">
-                      <input 
-                        autoFocus
-                        type="text" 
-                        placeholder="Classification Name..." 
-                        value={inlineCategoryName} 
-                        onChange={(e) => setInlineCategoryName(e.target.value)} 
-                        className="flex-1 bg-black/60 border border-white/5 rounded-xl px-4 py-2 text-[10px] text-white focus:outline-none" 
-                      />
-                      <button type="submit" className="px-4 bg-blue-600 rounded-xl text-[9px] font-black uppercase text-white shadow-lg">Inject</button>
-                    </div>
-
-                    <div className="space-y-2">
-                      <span className="text-[7px] font-black text-slate-600 uppercase tracking-widest block text-center">Spectral Signature</span>
-                      <div className="flex flex-col gap-1.5 items-center">
-                        {COLOR_PALETTE.map((row, rIdx) => (
-                          <div key={rIdx} className="flex gap-1.5">
-                            {row.map((color) => (
-                              <button
-                                key={color}
-                                type="button"
-                                onClick={() => setSelectedColor(color)}
-                                className={`w-4 h-4 rounded-full border transition-all hover:scale-125 ${selectedColor === color ? 'border-white scale-110 ring-2 ring-white/20' : 'border-transparent opacity-60 hover:opacity-100'}`}
-                                style={{ backgroundColor: color }}
-                              />
-                            ))}
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  </form>
-                </div>
-              )}
-
-              <form onSubmit={handleInlineSubmit} className="space-y-4">
-                <div className="relative">
-                  <input 
-                    ref={urlInputRef} 
-                    required 
-                    type="text" 
-                    placeholder="YouTube URL..." 
-                    value={newUrl} 
-                    onChange={(e) => setNewUrl(e.target.value)} 
-                    className="w-full bg-black/60 border border-white/5 rounded-xl px-4 py-3 text-[10px] text-white focus:outline-none pr-10" 
-                  />
-                  {isFetchingTitle && (
-                    <div className="absolute right-3 top-1/2 -translate-y-1/2">
-                      <i className="fa-solid fa-circle-notch fa-spin text-blue-500 text-[10px]"></i>
-                    </div>
-                  )}
-                </div>
-                <input 
-                  type="text" 
-                  placeholder="Neural Prompt / Title..." 
-                  value={newPrompt} 
-                  onChange={(e) => setNewPrompt(e.target.value)} 
-                  className={`w-full bg-black/60 border rounded-xl px-4 py-3 text-[10px] text-white focus:outline-none transition-all ${isFetchingTitle ? 'border-blue-500/30' : 'border-white/10'}`} 
-                />
-                <div className="space-y-2">
-                  <span className="text-[8px] font-black text-slate-600 uppercase tracking-widest">Classification Matrix</span>
-                  <div className="flex flex-wrap gap-1.5">
-                    {categories.map(cat => (
-                      <button 
-                        key={cat} 
-                        type="button" 
-                        onClick={() => setNewCat(cat)} 
-                        className={`px-3 py-1.5 rounded-lg border text-[8px] font-black uppercase transition-all cursor-pointer ${newCat === cat ? 'bg-blue-600 border-blue-400 text-white shadow-[0_0_10px_rgba(37,99,235,0.3)]' : 'bg-white/5 border-white/5 text-slate-500 hover:text-white'}`}
-                      >
-                        {cat}
-                      </button>
+                <form onSubmit={handleAddCategoryInline} className="space-y-3 p-3 bg-black/40 rounded-xl border border-white/5">
+                  <input autoFocus type="text" placeholder="Cat Name..." value={inlineCategoryName} onChange={(e) => setInlineCategoryName(e.target.value)} className="w-full bg-slate-950 border border-white/10 rounded-lg px-3 py-2 text-[10px] text-white focus:outline-none" />
+                  <div className="flex gap-1.5 flex-wrap justify-center">
+                    {COLOR_PALETTE.flat().map(color => (
+                      <button key={color} type="button" onClick={() => setSelectedColor(color)} className={`w-3 h-3 rounded-full border transition-all ${selectedColor === color ? 'border-white scale-125 shadow-[0_0_8px_white]' : 'border-transparent opacity-40'}`} style={{ backgroundColor: color }} />
                     ))}
                   </div>
+                  <div className="flex gap-2">
+                    <button type="button" onClick={() => setIsAddingCategoryInline(false)} className="flex-1 text-[8px] font-black uppercase text-slate-600">Cancel</button>
+                    <button type="submit" className="flex-1 py-1.5 bg-blue-600 text-white rounded-lg text-[8px] font-black uppercase">Create</button>
+                  </div>
+                </form>
+              )}
+              <form onSubmit={handleInlineSubmit} className="space-y-4">
+                <input required type="text" placeholder="URL..." value={newUrl} onChange={(e) => setNewUrl(e.target.value)} className="w-full bg-black/40 border border-white/10 rounded-lg px-4 py-3 text-[10px] text-white focus:outline-none focus:border-white/20" />
+                <input type="text" placeholder="Title..." value={newPrompt} onChange={(e) => setNewPrompt(e.target.value)} className="w-full bg-black/40 border border-white/10 rounded-lg px-4 py-3 text-[10px] text-white focus:outline-none focus:border-white/20" />
+                <div className="flex flex-wrap gap-1">
+                  {categories.map(cat => (
+                    <button key={cat} type="button" onClick={() => setNewCat(cat)} className={`px-2 py-1 rounded-md border text-[8px] font-black uppercase transition-all ${newCat === cat ? 'bg-white border-white text-black' : 'bg-white/5 border-white/5 text-slate-500'}`}>{cat}</button>
+                  ))}
                 </div>
                 <div className="flex gap-2">
-                  <button type="button" onClick={resetForm} className="flex-1 bg-white/5 border border-white/10 text-slate-400 py-3 rounded-xl text-[9px] font-black uppercase cursor-pointer">Abort</button>
-                  <button type="submit" disabled={!newUrl || !newCat} className={`flex-[2] py-3 rounded-xl text-[9px] font-black uppercase shadow-lg transition-all cursor-pointer ${newUrl && newCat ? 'bg-white text-slate-950 hover:bg-blue-50' : 'bg-slate-700 text-slate-400 border border-white/5'}`}>Add Video</button>
+                  <button type="button" onClick={resetForm} className="flex-1 bg-white/5 border border-white/10 text-slate-500 py-3 rounded-xl text-[9px] font-black uppercase">Abort</button>
+                  <button type="submit" disabled={!newUrl || !newCat} className="flex-1 py-3 bg-white text-black rounded-xl text-[9px] font-black uppercase shadow-lg disabled:opacity-30">Inject</button>
                 </div>
               </form>
             </div>
@@ -382,82 +275,53 @@ const Playlist: React.FC<PlaylistProps> = ({
         </div>
       </div>
       
-      <div className="flex-1 space-y-2 overflow-y-auto pr-1.5 custom-scrollbar mt-4 pb-10">
+      <div className="flex-1 space-y-1 overflow-y-auto px-4 custom-scrollbar mt-2 pb-10">
         {filteredVideos.length === 0 ? (
-          <div className="h-full flex flex-col items-center justify-center text-center py-20 px-4 opacity-40">
-            <i className="fa-solid fa-folder-open text-4xl text-slate-700 mb-6"></i>
-            <p className="text-[9px] font-black uppercase tracking-[0.4em] text-slate-600">Zero Signals Detected</p>
+          <div className="h-full flex flex-col items-center justify-center text-center py-20 opacity-20">
+            <i className="fa-solid fa-wind text-3xl text-slate-700 mb-6"></i>
+            <p className="text-[10px] font-black uppercase tracking-[0.4em] text-slate-700">Archive Depleted</p>
           </div>
         ) : filteredVideos.map((video) => (
-          <div key={video.id} onClick={() => onSelect(video)} className={`group flex items-center gap-3 p-2.5 rounded-2xl transition-all cursor-pointer border relative animate-fade-in pr-10 ${currentVideo?.id === video.id ? 'bg-white/10 border-white/20' : `bg-transparent border-transparent hover:bg-white/5`}`}>
-            
-            <div className="absolute top-0 bottom-0 right-3 py-3 flex flex-col items-center justify-between z-30 opacity-30 group-hover:opacity-100 transition-opacity">
-              <button 
-                onClick={(e) => { e.stopPropagation(); handleShare(video); }} 
-                data-tooltip={shareSuccessId === video.id ? "Linked Copied!" : "Share Signal"}
-                className={`transition-all hover:scale-125 cursor-pointer ${shareSuccessId === video.id ? 'text-green-500' : 'text-slate-400 hover:text-white'}`}
-              >
-                <i className={`fa-solid ${shareSuccessId === video.id ? 'fa-check-double' : 'fa-share-nodes'} text-[12px]`}></i>
+          <div key={video.id} onClick={() => onSelect(video)} className={`group flex items-center gap-3 p-3 rounded-2xl transition-all cursor-pointer border relative animate-fade-in pr-10 ${currentVideo?.id === video.id ? 'bg-white/5 border-white/10 shadow-lg' : 'bg-transparent border-transparent hover:bg-white/5'}`}>
+            <div className="absolute top-0 bottom-0 right-3 flex flex-col items-center justify-center gap-3 z-30 opacity-0 group-hover:opacity-100 transition-opacity">
+              <button onClick={(e) => { e.stopPropagation(); handleShare(video); }} className={`transition-all hover:scale-125 ${shareSuccessId === video.id ? 'text-green-500' : 'text-slate-600 hover:text-white'}`} data-tooltip="Share Video">
+                <i className={`fa-solid ${shareSuccessId === video.id ? 'fa-check' : 'fa-link'} text-[11px]`}></i>
               </button>
-              
-              <button 
-                onClick={(e) => { e.stopPropagation(); onToggleFavorite(video.id); }} 
-                className={`transition-all hover:scale-125 cursor-pointer ${video.isFavorite ? 'text-red-500 shadow-sm' : 'text-slate-400 hover:text-white'}`}
-              >
-                <i className={`fa-${video.isFavorite ? 'solid' : 'regular'} fa-heart text-[12px]`}></i>
+              <button onClick={(e) => { e.stopPropagation(); onToggleFavorite(video.id); }} className={`transition-all hover:scale-125 ${userFavorites.includes(video.id) ? 'text-red-500' : 'text-slate-600 hover:text-white'}`}>
+                <i className={`fa-${userFavorites.includes(video.id) ? 'solid' : 'regular'} fa-heart text-[11px]`}></i>
               </button>
-
               {isAuthorized && (
-                <button 
-                  onClick={(e) => { e.stopPropagation(); setConfirmingDeleteId(video.id); }} 
-                  className="text-slate-400 hover:text-red-500 transition-all hover:scale-125 cursor-pointer"
-                  data-tooltip="PURGE SIGNAL"
-                >
-                  <i className="fa-solid fa-xmark text-[14px]"></i>
+                <button onClick={(e) => { e.stopPropagation(); setConfirmingDeleteId(video.id); }} className="text-slate-600 hover:text-red-500 transition-all hover:scale-125" data-tooltip="Purge Video">
+                  <i className="fa-solid fa-trash-can text-[11px]"></i>
                 </button>
               )}
             </div>
-
             {confirmingDeleteId === video.id && isAuthorized && (
-              <div className="absolute inset-0 z-50 bg-[#0f172a]/95 backdrop-blur-xl rounded-2xl flex items-center justify-between px-6 animate-fade-in border border-red-500/20" onClick={(e) => e.stopPropagation()}>
-                <div className="flex flex-col">
-                  <span className="text-[10px] font-black text-red-500 uppercase tracking-widest flex items-center gap-2">
-                    <i className="fa-solid fa-triangle-exclamation animate-pulse"></i>
-                    Purge Signal?
-                  </span>
-                  <span className="text-[7px] font-bold text-slate-500 uppercase tracking-widest mt-0.5">Destroy from Archive</span>
-                </div>
+              <div className="absolute inset-0 z-50 bg-black/95 backdrop-blur-md rounded-2xl flex items-center justify-between px-6 border border-red-500/20" onClick={(e) => e.stopPropagation()}>
+                <span className="text-[10px] font-black text-red-500 uppercase tracking-widest">Delete Video?</span>
                 <div className="flex gap-2">
-                  <button onClick={() => setConfirmingDeleteId(null)} className="px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 text-[8px] font-black uppercase text-slate-400 hover:text-white transition-all">Abort</button>
-                  <button onClick={(e) => { e.stopPropagation(); onRemove(video.id); setConfirmingDeleteId(null); }} className="px-3 py-1.5 rounded-lg bg-red-600 text-white text-[8px] font-black uppercase shadow-lg hover:bg-red-500 transition-all">Purge</button>
+                  <button onClick={() => setConfirmingDeleteId(null)} className="px-3 py-1 bg-white/5 rounded-lg text-[8px] font-black uppercase text-slate-400">Cancel</button>
+                  <button onClick={(e) => { e.stopPropagation(); onRemove(video.id); setConfirmingDeleteId(null); }} className="px-3 py-1 bg-red-600 text-white rounded-lg text-[8px] font-black uppercase">Destroy</button>
                 </div>
               </div>
             )}
-
-            <div className={`w-24 h-14 rounded-xl bg-slate-900 flex-shrink-0 overflow-hidden relative shadow-lg border transition-all duration-300 group-hover:scale-[1.03] ${currentVideo?.id === video.id ? 'border-blue-500/30' : 'border-white/5'}`}>
-              <img src={getThumbnailUrl(video)} className="w-full h-full object-cover grayscale-[0.3] group-hover:grayscale-0 transition-all duration-300" alt="" />
-              <div className={`absolute inset-0 flex items-center justify-center ${currentVideo?.id === video.id ? 'bg-blue-600/30' : 'bg-black/0 group-hover:bg-black/20'}`}>
-                <div className={`w-8 h-8 rounded-full bg-white flex items-center justify-center shadow-lg transition-transform ${currentVideo?.id === video.id ? 'scale-100' : 'scale-0 group-hover:scale-100'}`}>
-                   <i className="fa-solid fa-play text-blue-600 text-[10px] ml-0.5"></i>
-                </div>
+            <div className={`w-24 h-14 rounded-xl bg-slate-900 flex-shrink-0 overflow-hidden relative border ${currentVideo?.id === video.id ? 'border-white/20' : 'border-white/5'}`}>
+              <img src={getThumbnailUrl(video)} className="w-full h-full object-cover grayscale-[0.4] group-hover:grayscale-0 transition-all" alt="" />
+              <div className={`absolute inset-0 flex items-center justify-center ${currentVideo?.id === video.id ? 'bg-white/10' : 'bg-transparent'}`}>
+                <i className={`fa-solid fa-play text-white text-[10px] ${currentVideo?.id === video.id ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}></i>
               </div>
             </div>
-            
             <div className="flex-1 overflow-hidden flex flex-col justify-center gap-1.5 pr-2">
-              <p className="text-[14px] font-bold leading-tight truncate transition-colors duration-300 text-white">
-                {video.prompt}
-              </p>
-              <div className="flex items-center gap-1.5 w-full">
-                <span className={`text-[9px] font-black uppercase px-1.5 py-0.5 rounded-md border shrink-0 transition-all`} style={getTagStyles(video.category)}>{video.category}</span>
-                <div className="flex items-center gap-1.5 text-[9px] font-black uppercase tracking-widest shrink-0 border-l border-white/5 pl-1.5 overflow-x-auto custom-scrollbar no-scrollbar">
-                  <div className="flex items-center gap-1 shrink-0">
-                    <span className="text-orange-500">Viewed</span>
-                    <span className="text-slate-400">{formatCount(video.viewCount)}</span>
-                  </div>
-                  <div className="flex items-center gap-1 shrink-0">
-                    <span className="text-blue-500">Liked</span>
-                    <span className="text-slate-400">{formatCount(video.likeCount)}</span>
-                  </div>
+              <p className={`text-[14px] font-bold leading-tight truncate text-white transition-colors duration-300`}>{video.prompt}</p>
+              <div className="flex items-center gap-3 text-[9px] font-black uppercase tracking-widest">
+                <span className="px-1.5 py-0.5 rounded-md border shrink-0" style={getTagStyles(video.category)}>{video.category}</span>
+                <div className="flex items-center gap-1 shrink-0">
+                  <span className="text-orange-500">Views::</span>
+                  <span className="text-white">{formatCount(video.viewCount)}</span>
+                </div>
+                <div className="flex items-center gap-1 shrink-0">
+                  <span className="text-blue-500">Likes::</span>
+                  <span className="text-white">{formatCount(video.likeCount)}</span>
                 </div>
               </div>
             </div>
