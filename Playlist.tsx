@@ -56,7 +56,6 @@ const Playlist: React.FC<PlaylistProps> = ({
   const [newCat, setNewCat] = useState<VideoCategory | null>(null);
   const [confirmingDeleteId, setConfirmingDeleteId] = useState<string | null>(null);
   const [isExpanded, setIsExpanded] = useState(false);
-  const [purgeConfirmation, setPurgeConfirmation] = useState(false);
   const [shareSuccessId, setShareSuccessId] = useState<string | null>(null);
   
   const [isAddingCategoryInline, setIsAddingCategoryInline] = useState(false);
@@ -64,15 +63,7 @@ const Playlist: React.FC<PlaylistProps> = ({
   const [selectedColor, setSelectedColor] = useState(COLOR_PALETTE[0][0]);
   const [isFetchingTitle, setIsFetchingTitle] = useState(false);
 
-  const scrollContainerRef = useRef<HTMLDivElement>(null);
   const urlInputRef = useRef<HTMLInputElement>(null);
-
-  useEffect(() => {
-    if (purgeConfirmation) {
-      const timer = setTimeout(() => setPurgeConfirmation(false), 3000);
-      return () => clearTimeout(timer);
-    }
-  }, [purgeConfirmation]);
 
   useEffect(() => {
     if (showAddForm && urlInputRef.current) {
@@ -218,7 +209,7 @@ const Playlist: React.FC<PlaylistProps> = ({
           <div className="flex items-center gap-4">
             {isAuthorized && (
               <button 
-                onClick={() => { if(confirm('Purge archive?')) onPurgeAll(); }}
+                onClick={() => { if(confirm('Purge all videos? This cannot be undone.')) onPurgeAll(); }}
                 className="text-[9px] font-black uppercase tracking-widest text-red-500 hover:text-white transition-all flex items-center gap-2 cursor-pointer"
               >
                 <i className="fa-solid fa-trash-can text-[11px]"></i>
@@ -365,7 +356,7 @@ const Playlist: React.FC<PlaylistProps> = ({
         </div>
       </div>
       
-      <div ref={scrollContainerRef} className="flex-1 space-y-2 overflow-y-auto pr-1.5 custom-scrollbar mt-4 pb-10">
+      <div className="flex-1 space-y-2 overflow-y-auto pr-1.5 custom-scrollbar mt-4 pb-10">
         {filteredVideos.length === 0 ? (
           <div className="h-full flex flex-col items-center justify-center text-center py-20 px-4 opacity-40">
             <i className="fa-solid fa-folder-open text-4xl text-slate-700 mb-6"></i>
@@ -373,6 +364,7 @@ const Playlist: React.FC<PlaylistProps> = ({
           </div>
         ) : filteredVideos.map((video) => (
           <div key={video.id} onClick={() => onSelect(video)} className={`group flex items-center gap-3 p-2.5 rounded-2xl transition-all cursor-pointer border relative animate-fade-in pr-10 ${currentVideo?.id === video.id ? 'bg-white/10 border-white/20' : `bg-transparent border-transparent hover:bg-white/5`}`}>
+            
             <div className="absolute top-0 bottom-0 right-3 py-3 flex flex-col items-center justify-between z-30 opacity-30 group-hover:opacity-100 transition-opacity">
               <button 
                 onClick={(e) => { e.stopPropagation(); handleShare(video); }} 
@@ -381,15 +373,40 @@ const Playlist: React.FC<PlaylistProps> = ({
               >
                 <i className={`fa-solid ${shareSuccessId === video.id ? 'fa-check-double' : 'fa-share-nodes'} text-[12px]`}></i>
               </button>
-              <button onClick={(e) => { e.stopPropagation(); onToggleFavorite(video.id); }} className={`transition-all hover:scale-125 cursor-pointer ${video.isFavorite ? 'text-red-500 shadow-sm' : 'text-slate-400 hover:text-white'}`}>
+              
+              <button 
+                onClick={(e) => { e.stopPropagation(); onToggleFavorite(video.id); }} 
+                className={`transition-all hover:scale-125 cursor-pointer ${video.isFavorite ? 'text-red-500 shadow-sm' : 'text-slate-400 hover:text-white'}`}
+              >
                 <i className={`fa-${video.isFavorite ? 'solid' : 'regular'} fa-heart text-[12px]`}></i>
               </button>
+
               {isAuthorized && (
-                <button onClick={(e) => { e.stopPropagation(); if(confirm('Purge?')) onRemove(video.id); }} className="text-slate-400 hover:text-red-500 transition-all hover:scale-125 cursor-pointer">
+                <button 
+                  onClick={(e) => { e.stopPropagation(); setConfirmingDeleteId(video.id); }} 
+                  className="text-slate-400 hover:text-red-500 transition-all hover:scale-125 cursor-pointer"
+                  data-tooltip="PURGE SIGNAL"
+                >
                   <i className="fa-solid fa-xmark text-[14px]"></i>
                 </button>
               )}
             </div>
+
+            {confirmingDeleteId === video.id && isAuthorized && (
+              <div className="absolute inset-0 z-50 bg-[#0f172a]/95 backdrop-blur-xl rounded-2xl flex items-center justify-between px-6 animate-fade-in border border-red-500/20" onClick={(e) => e.stopPropagation()}>
+                <div className="flex flex-col">
+                  <span className="text-[10px] font-black text-red-500 uppercase tracking-widest flex items-center gap-2">
+                    <i className="fa-solid fa-triangle-exclamation animate-pulse"></i>
+                    Purge Signal?
+                  </span>
+                  <span className="text-[7px] font-bold text-slate-500 uppercase tracking-widest mt-0.5">Destroy from Archive</span>
+                </div>
+                <div className="flex gap-2">
+                  <button onClick={() => setConfirmingDeleteId(null)} className="px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 text-[8px] font-black uppercase text-slate-400 hover:text-white transition-all">Abort</button>
+                  <button onClick={(e) => { e.stopPropagation(); onRemove(video.id); setConfirmingDeleteId(null); }} className="px-3 py-1.5 rounded-lg bg-red-600 text-white text-[8px] font-black uppercase shadow-lg hover:bg-red-500 transition-all">Purge</button>
+                </div>
+              </div>
+            )}
 
             <div className={`w-24 h-14 rounded-xl bg-slate-900 flex-shrink-0 overflow-hidden relative shadow-lg border transition-all duration-300 group-hover:scale-[1.03] ${currentVideo?.id === video.id ? 'border-blue-500/30' : 'border-white/5'}`}>
               <img src={getThumbnailUrl(video)} className="w-full h-full object-cover grayscale-[0.3] group-hover:grayscale-0 transition-all duration-300" alt="" />

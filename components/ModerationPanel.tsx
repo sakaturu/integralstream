@@ -124,7 +124,7 @@ const ModerationPanel: React.FC<ModerationPanelProps> = ({
           <div className="flex bg-black/40 p-1 rounded-xl border border-white/5">
             <button onClick={() => setActiveTab('Queue')} className={`px-3 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all ${activeTab === 'Queue' ? 'bg-white text-slate-950 shadow-lg' : 'text-slate-500 hover:text-white'}`}>Queue ({pendingReviews.length})</button>
             <button onClick={() => setActiveTab('Forge')} className={`px-3 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all ${activeTab === 'Forge' ? 'bg-blue-600 text-white shadow-lg' : 'text-slate-500 hover:text-white'}`}>Forge</button>
-            <button onClick={() => setActiveTab('Developer')} className={`px-3 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all ${activeTab === 'Developer' ? 'bg-purple-600 text-white shadow-lg' : 'text-slate-500 hover:text-white'}`}>Source Sync</button>
+            <button onClick={() => setActiveTab('Developer')} className={`px-3 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all ${activeTab === 'Developer' ? 'bg-purple-600 text-white shadow-lg' : 'text-slate-500 hover:text-white'}`}>Cloud Sync</button>
           </div>
 
           <button onClick={onClose} className="w-8 h-8 rounded-full bg-white/5 hover:bg-white/10 flex items-center justify-center text-slate-400 hover:text-white transition-all border border-white/10">
@@ -193,9 +193,9 @@ const ModerationPanel: React.FC<ModerationPanelProps> = ({
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                  <div className="p-6 rounded-3xl bg-blue-600/5 border border-blue-500/20 flex flex-col justify-between">
                     <div>
-                      <h4 className="text-[11px] font-black text-white uppercase tracking-widest mb-1 flex items-center gap-2"><i className="fa-solid fa-cloud-arrow-down text-blue-500"></i>PULL: Get GitHub Data</h4>
-                      <p className="text-[8px] text-slate-500 uppercase font-bold mb-6">Reset Browser to Source Code</p>
-                      <p className="text-[9px] text-slate-400 leading-relaxed uppercase font-bold mb-6">Use this if you edited <span className="text-blue-400">sampleData.ts</span> on your Hard Drive and pushed to GitHub. It wipes local overrides.</p>
+                      <h4 className="text-[11px] font-black text-white uppercase tracking-widest mb-1 flex items-center gap-2"><i className="fa-solid fa-cloud-arrow-down text-blue-500"></i>PULL: From Vercel / GitHub</h4>
+                      <p className="text-[8px] text-slate-500 uppercase font-bold mb-6">Reset Browser to GitHub Source</p>
+                      <p className="text-[9px] text-slate-400 leading-relaxed uppercase font-bold mb-6">Use this if you pushed a new <span className="text-blue-400">sampleData.ts</span> to GitHub and Vercel has finished rebuilding. It clears your local session.</p>
                     </div>
                     <button 
                       onClick={handleTriggerHardSync} 
@@ -203,18 +203,18 @@ const ModerationPanel: React.FC<ModerationPanelProps> = ({
                       className={`w-full py-4 bg-blue-600 hover:bg-blue-500 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-lg transition-all flex items-center justify-center gap-3 ${isSyncing ? 'opacity-50 cursor-wait' : ''}`}
                     >
                       {isSyncing ? <i className="fa-solid fa-circle-notch fa-spin"></i> : <i className="fa-solid fa-cloud-arrow-down"></i>}
-                      {isSyncing ? 'Synchronizing...' : 'Sync with GitHub'}
+                      {isSyncing ? 'Synchronizing...' : 'Pull from GitHub'}
                     </button>
                  </div>
                  
                  <div className="p-6 rounded-3xl bg-purple-600/5 border border-purple-500/20 flex flex-col">
                     <h4 className="text-[11px] font-black text-white uppercase tracking-widest mb-1 flex items-center gap-2"><i className="fa-solid fa-cloud-arrow-up text-purple-500"></i>PUSH: Save to GitHub</h4>
-                    <p className="text-[8px] text-slate-500 uppercase font-bold mb-6">Update Repository from Browser</p>
+                    <p className="text-[8px] text-slate-500 uppercase font-bold mb-6">Manual Source Update Protocol</p>
                     <div className="space-y-4 text-[9px] text-slate-400 font-bold uppercase leading-tight">
-                       <div className="flex gap-3 items-start"><span className="w-5 h-5 shrink-0 bg-purple-500/20 rounded-full flex items-center justify-center text-purple-500">1</span><span>Copy the code below</span></div>
-                       <div className="flex gap-3 items-start"><span className="w-5 h-5 shrink-0 bg-purple-500/20 rounded-full flex items-center justify-center text-purple-500">2</span><span>Open <span className="text-purple-400">sampleData.ts</span> on your Hard Drive</span></div>
+                       <div className="flex gap-3 items-start"><span className="w-5 h-5 shrink-0 bg-purple-500/20 rounded-full flex items-center justify-center text-purple-500">1</span><span>Copy the code block below</span></div>
+                       <div className="flex gap-3 items-start"><span className="w-5 h-5 shrink-0 bg-purple-500/20 rounded-full flex items-center justify-center text-purple-500">2</span><span>Open <span className="text-purple-400">sampleData.ts</span> on your local machine</span></div>
                        <div className="flex gap-3 items-start"><span className="w-5 h-5 shrink-0 bg-purple-500/20 rounded-full flex items-center justify-center text-purple-500">3</span><span>Paste and Replace the content</span></div>
-                       <div className="flex gap-3 items-start"><span className="w-5 h-5 shrink-0 bg-purple-500/20 rounded-full flex items-center justify-center text-purple-500">4</span><span>Push to GitHub via Git</span></div>
+                       <div className="flex gap-3 items-start"><span className="w-5 h-5 shrink-0 bg-purple-500/20 rounded-full flex items-center justify-center text-purple-500">4</span><span>`git push` to GitHub</span></div>
                     </div>
                  </div>
               </div>
@@ -231,8 +231,8 @@ const ModerationPanel: React.FC<ModerationPanelProps> = ({
               </div>
 
               <div className="grid grid-cols-2 gap-4">
-                 <div className="flex justify-between items-center text-[9px] font-black uppercase tracking-widest border-b border-white/5 pb-2 text-slate-500">Local: v{LIBRARY_VERSION}</div>
-                 <div className="flex justify-between items-center text-[9px] font-black uppercase tracking-widest border-b border-white/5 pb-2 text-emerald-400">Cloud: v{cloudVersion}</div>
+                 <div className="flex justify-between items-center text-[9px] font-black uppercase tracking-widest border-b border-white/5 pb-2 text-slate-500">Browser Cache: v{LIBRARY_VERSION}</div>
+                 <div className="flex justify-between items-center text-[9px] font-black uppercase tracking-widest border-b border-white/5 pb-2 text-emerald-400">Vercel Build: v{cloudVersion}</div>
               </div>
             </div>
           )}
