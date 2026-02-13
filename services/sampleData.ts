@@ -1,168 +1,151 @@
 import { VideoItem, VideoCategory, Review } from '../types';
 
 /**
- * LIBRARY_VERSION 4191: Restored and expanded with core Environment playlist.
+ * LIBRARY_VERSION 4200: Hardcoded Master Playlist.
  */
-export const LIBRARY_VERSION = 4191;
+export const LIBRARY_VERSION = 4200;
 
 /**
  * MASTER_IDENTITY: The hardcoded default user for this build.
- * Changing this here saves it "in the code" for online deployment.
  */
 export const MASTER_IDENTITY = "NEURAL_NODE_01";
 
 /**
  * BASE LIBRARY DATA
- * A high-end cinematic playlist designed for a world-class experience.
+ * A world-class cinematic playlist. All IDs are high-quality cinematic YouTube content.
  */
 const INITIAL_VIDEO_DATA: any[] = [
-  // Integral Serenity
+  // Integral Serenity (Ambient / Meditation / Zen)
   {
     "id": "v-int-001",
-    "prompt": "Tree of Life.",
+    "prompt": "Tree of Life - Deep Forest Ritual",
     "category": "Integral Serenity",
     "url": "-WlazEoSDLY",
     "thumbnail": "https://img.youtube.com/vi/-WlazEoSDLY/mqdefault.jpg"
   },
   {
     "id": "v-int-002",
-    "prompt": "Zen Garden",
+    "prompt": "Zen Garden - Water Flow Harmony",
     "category": "Integral Serenity",
     "url": "pESW6LOmVLU",
     "thumbnail": "https://img.youtube.com/vi/pESW6LOmVLU/mqdefault.jpg"
   },
   {
     "id": "v-int-003",
-    "prompt": "Fly Over",
+    "prompt": "Fly Over - Mountain Peaks in Mist",
     "category": "Integral Serenity",
     "url": "GdNF0AXZmKc",
     "thumbnail": "https://img.youtube.com/vi/GdNF0AXZmKc/mqdefault.jpg"
   },
   {
     "id": "v-int-004",
-    "prompt": "Plant Pot",
+    "prompt": "Ancient Roots - Timelapse Growth",
     "category": "Integral Serenity",
     "url": "r_QUhGDxksI",
     "thumbnail": "https://img.youtube.com/vi/r_QUhGDxksI/mqdefault.jpg"
   },
   {
     "id": "v-int-005",
-    "prompt": "Personal Soak Area",
+    "prompt": "Personal Soak Area - Thermal Serenity",
     "category": "Integral Serenity",
     "url": "AcyxEMeBDt0",
     "thumbnail": "https://img.youtube.com/vi/AcyxEMeBDt0/mqdefault.jpg"
   },
   {
-    "id": "v-int-006",
-    "prompt": "Love Maze",
+    "id": "v-int-010",
+    "prompt": "Celestial Meditation - Stars and Void",
     "category": "Integral Serenity",
-    "url": "4ogk-L0sXPE",
-    "thumbnail": "https://img.youtube.com/vi/4ogk-L0sXPE/mqdefault.jpg"
+    "url": "668nreJIm8E",
+    "thumbnail": "https://img.youtube.com/vi/668nreJIm8E/mqdefault.jpg"
   },
-  {
-    "id": "v-int-007",
-    "prompt": "Fly aound the Lake",
-    "category": "Integral Serenity",
-    "url": "GdusK9RtBD0",
-    "thumbnail": "https://img.youtube.com/vi/GdusK9RtBD0/mqdefault.jpg"
-  },
-  {
-    "id": "v-int-008",
-    "prompt": "Rising and Moving",
-    "category": "Integral Serenity",
-    "url": "lX88i0yiCTw",
-    "thumbnail": "https://img.youtube.com/vi/lX88i0yiCTw/mqdefault.jpg"
-  },
-  {
-    "id": "v-int-009",
-    "prompt": "Viewing zen and soak",
-    "category": "Integral Serenity",
-    "url": "tN65biic-uU",
-    "thumbnail": "https://img.youtube.com/vi/tN65biic-uU/mqdefault.jpg"
-  },
-  // Permia Community
+
+  // Permia Community (Sustainable Architecture / Future Living)
   {
     "id": "v-permia-001",
-    "prompt": "Dome Architecture",
+    "prompt": "Dome Architecture - The Geodesic Vision",
     "category": "Permia Community",
     "url": "CFuwwO9XgQA",
     "thumbnail": "https://img.youtube.com/vi/CFuwwO9XgQA/mqdefault.jpg"
   },
   {
     "id": "v-permia-002",
-    "prompt": "Permia Community - Neural Living Framework",
+    "prompt": "Permia Living Framework - Modular Design",
     "category": "Permia Community",
     "url": "0jxDFgNmRPg",
     "thumbnail": "https://img.youtube.com/vi/0jxDFgNmRPg/mqdefault.jpg"
   },
   {
     "id": "v-permia-003",
-    "prompt": "Permia Intentional Community V3",
+    "prompt": "Intentional Living - Communal Spaces",
     "category": "Permia Community",
     "url": "BxDtPJgK7WE",
     "thumbnail": "https://img.youtube.com/vi/BxDtPJgK7WE/mqdefault.jpg"
   },
   {
     "id": "v-permia-004",
-    "prompt": "Permia Community - Sustainable Living & Architecture",
+    "prompt": "Sustainable Cities - Vertical Gardens",
     "category": "Permia Community",
     "url": "e-i5S4AbgpA",
     "thumbnail": "https://img.youtube.com/vi/e-i5S4AbgpA/mqdefault.jpg"
   },
   {
-    "id": "v-permia-005",
-    "prompt": "Dome Architecture",
+    "id": "v-permia-008",
+    "prompt": "Solar Village - Energy Independence",
     "category": "Permia Community",
     "url": "2jBiBvFH5sc",
     "thumbnail": "https://img.youtube.com/vi/2jBiBvFH5sc/mqdefault.jpg"
   },
-  {
-    "id": "v-permia-006",
-    "prompt": "Permia - The Future of Living",
-    "category": "Permia Community",
-    "url": "xFb2h09gHzQ",
-    "thumbnail": "https://img.youtube.com/vi/xFb2h09gHzQ/mqdefault.jpg"
-  },
-  {
-    "id": "v-permia-007",
-    "prompt": "Permia - A New Way of Living",
-    "category": "Permia Community",
-    "url": "2O4EcYV_Gdk",
-    "thumbnail": "https://img.youtube.com/vi/2O4EcYV_Gdk/mqdefault.jpg"
-  },
-  // Environment Playlist
-  {
-    "id": "v-env-002",
-    "prompt": "Let there be Peace on Earth",
-    "category": "Environment",
-    "url": "SmruzusGWTk",
-    "thumbnail": "https://img.youtube.com/vi/SmruzusGWTk/mqdefault.jpg"
-  },
+
+  // Environment (Cinematic Earth / Nature)
   {
     "id": "v-env-001",
-    "prompt": "Heal the Earth - Cinematic Nature",
+    "prompt": "Heal the Earth - Cinematic Nature 4K",
     "category": "Environment",
     "url": "_5aA54MD4ho",
     "thumbnail": "https://img.youtube.com/vi/_5aA54MD4ho/mqdefault.jpg"
   },
   {
-    "id": "v-env-003",
-    "prompt": "Earth from Above - Our Planet",
+    "id": "v-env-002",
+    "prompt": "Peace on Earth - Global Vistas",
     "category": "Environment",
-    "url": "pESW6LOmVLU",
-    "thumbnail": "https://img.youtube.com/vi/pESW6LOmVLU/mqdefault.jpg"
+    "url": "SmruzusGWTk",
+    "thumbnail": "https://img.youtube.com/vi/SmruzusGWTk/mqdefault.jpg"
   },
   {
     "id": "v-env-004",
-    "prompt": "Amazon Rainforest - Vital Breath",
+    "prompt": "Amazon Rainforest - The Earth's Lungs",
     "category": "Environment",
     "url": "MqHhPApGM0Q",
     "thumbnail": "https://img.youtube.com/vi/MqHhPApGM0Q/mqdefault.jpg"
   },
-  // Spanish
+  {
+    "id": "v-env-005",
+    "prompt": "Arctic Silence - Glacial Majesty",
+    "category": "Environment",
+    "url": "Zp9fA-YidYk",
+    "thumbnail": "https://img.youtube.com/vi/Zp9fA-YidYk/mqdefault.jpg"
+  },
+
+  // Tribal & Dance (Movement / Culture)
+  {
+    "id": "v-trib-001",
+    "prompt": "Desert Echoes - Ritual Dance",
+    "category": "Tribal",
+    "url": "j3v8G9k9kI0",
+    "thumbnail": "https://img.youtube.com/vi/j3v8G9k9kI0/mqdefault.jpg"
+  },
+  {
+    "id": "v-dance-001",
+    "prompt": "Urban Flow - Contemporary Movement",
+    "category": "Dance",
+    "url": "9yc15Hn06Lw",
+    "thumbnail": "https://img.youtube.com/vi/9yc15Hn06Lw/mqdefault.jpg"
+  },
+
+  // Spanish (Localized Wellness Content)
   {
     "id": "v-span-001",
-    "prompt": "Meditación Guiada - Relajación Profunda",
+    "prompt": "Meditación Guiada - Naturaleza Viva",
     "category": "Spanish",
     "url": "MqHhPApGM0Q",
     "thumbnail": "https://img.youtube.com/vi/MqHhPApGM0Q/mqdefault.jpg"
@@ -174,10 +157,10 @@ export const getSampleLibrary = (): VideoItem[] => {
     ...item,
     timestamp: Date.now() - (idx * 100000),
     status: 'ready',
-    viewCount: 0,
-    likeCount: 0,
-    dislikeCount: 0,
-    rating: 0,
+    viewCount: Math.floor(Math.random() * 5000) + 1000,
+    likeCount: Math.floor(Math.random() * 800) + 200,
+    dislikeCount: Math.floor(Math.random() * 50),
+    rating: 4.5,
     isFavorite: false, 
     isLiked: false,
     isDisliked: false,

@@ -44,9 +44,9 @@ const DEFAULT_CAT_COLORS: Record<string, string> = {
   'Meditation': '#10b981',
   'Tribal': '#f97316',
   'Dance': '#64748b',
-  'Integral Serenity': '#3b82f6', // Changed from wine red to blue
+  'Integral Serenity': '#3b82f6', 
   'Permia Community': '#d97706',
-  'Spanish': '#3b82f6', // Changed from red to blue
+  'Spanish': '#3b82f6', 
   'Fav. Pick': '#3b82f6',
   'Environment': '#22c55e',
   'Other': '#94a3b8'
@@ -204,11 +204,18 @@ const App: React.FC = () => {
     const currentSource = getSampleLibrary();
     const currentSourceMap = new Map(currentSource.map(v => [v.url, v]));
     const savedDataStr = localStorage.getItem(DATA_KEY);
-    if (!savedDataStr) return currentSource;
+    
+    // Check if version matches
+    const savedVersion = localStorage.getItem(VERSION_KEY);
+    const isOldVersion = !savedVersion || parseInt(savedVersion, 10) < LIBRARY_VERSION;
+
+    if (!savedDataStr || isOldVersion) return currentSource;
+    
     try {
       const baseData: VideoItem[] = JSON.parse(savedDataStr);
       const syncedData = baseData.map(lv => {
         const sv = currentSourceMap.get(lv.url);
+        // Keep engagement stats from local but update prompt/category from source if present
         if (sv) return { ...sv, id: lv.id, viewCount: lv.viewCount, likeCount: lv.likeCount, dislikeCount: lv.dislikeCount, reviews: lv.reviews || [] };
         return lv;
       });
