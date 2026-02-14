@@ -20,7 +20,7 @@ interface ModerationPanelProps {
   onCheckVersion: () => void;
   onHardSync: () => void;
   currentUser: string;
-  currentFavorites: string[];
+  userFavMap: Record<string, string[]>; // Accepts the full map for global persistence
 }
 
 interface PendingReview extends Review {
@@ -42,7 +42,7 @@ const ModerationPanel: React.FC<ModerationPanelProps> = ({
   onCheckVersion,
   onHardSync,
   currentUser,
-  currentFavorites
+  userFavMap
 }) => {
   const [activeTab, setActiveTab] = useState<'Queue' | 'Forge' | 'Developer'>('Queue');
   const [copySuccess, setCopySuccess] = useState(false);
@@ -94,22 +94,19 @@ const ModerationPanel: React.FC<ModerationPanelProps> = ({
       thumbnail: v.thumbnail || `https://img.youtube.com/vi/${v.url}/mqdefault.jpg`
     }));
     
-    // BUILD THE FAVORITES MAPPING FOR EXPORT
-    const favExport = { [currentUser]: currentFavorites };
-
     return `import { VideoItem, VideoCategory, Review } from '../types';
 
 export const LIBRARY_VERSION = ${LIBRARY_VERSION};
 
 /**
- * MASTER_IDENTITY: Saved from Terminal Forge.
+ * MASTER_IDENTITY: The last active identity during source generation.
  */
 export const MASTER_IDENTITY = "${currentUser}";
 
 /**
- * HARDCODED_FAVORITES: Captures your current browser vault state.
+ * HARDCODED_FAVORITES: Captures ALL user vaults for hardcoded persistence.
  */
-export const HARDCODED_FAVORITES: Record<string, string[]> = ${JSON.stringify(favExport, null, 2)};
+export const HARDCODED_FAVORITES: Record<string, string[]> = ${JSON.stringify(userFavMap, null, 2)};
 
 const INITIAL_VIDEO_DATA: any[] = ${JSON.stringify(data, null, 2)};
 
@@ -149,7 +146,7 @@ export const getSurpriseVideo = (): VideoItem => {
     reviews: []
   };
 };`;
-  }, [videos, currentUser, currentFavorites]);
+  }, [videos, currentUser, userFavMap]);
 
   const handleCopyCode = () => {
     navigator.clipboard.writeText(generatedCode);

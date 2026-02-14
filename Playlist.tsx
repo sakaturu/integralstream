@@ -24,9 +24,9 @@ interface PlaylistProps {
 }
 
 const COLOR_PALETTE = [
-  ['#60a5fa', '#93c5fd', '#3b82f6', '#0ea5e9', '#38bdf8', '#7dd3fc', '#06b6d4', '#22d3ee', '#67e8f9', '#818cf8', '#a5b4fc', '#6366f1'],
-  ['#34d399', '#6ee7b7', '#10b981', '#4ade80', '#86efac', '#22c55e', '#a3e635', '#bef264', '#84cc16', '#2dd4bf', '#5eead4', '#14b8a6'],
-  ['#fb923c', '#fdba74', '#f97316', '#fbbf24', '#fde047', '#facc15', '#f472b6', '#fbcfe8', '#ec4899', '#cbd5e1', '#e2e8f0', '#94a3b8']
+  ['#60a5fa', '#38bdf8', '#0ea5e9', '#06b6d4', '#22d3ee', '#67e8f9', '#818cf8', '#a5b4fc', '#6366f1', '#4f46e5', '#a855f7', '#d946ef'],
+  ['#34d399', '#10b981', '#4ade80', '#22c55e', '#84cc16', '#a3e635', '#bef264', '#d9f99d', '#2dd4bf', '#5eead4', '#14b8a6', '#0d9488'],
+  ['#fb923c', '#f97316', '#fbbf24', '#facc15', '#fde047', '#f472b6', '#ec4899', '#f0abfc', '#d8b4fe', '#cbd5e1', '#e2e8f0', '#94a3b8']
 ];
 
 const Playlist: React.FC<PlaylistProps> = ({ 
@@ -146,23 +146,23 @@ const Playlist: React.FC<PlaylistProps> = ({
   };
 
   const getTagStyles = (category: string) => {
-    const color = categoryColors[category] || '#94a3b8';
-    return { color: color, borderColor: `${color}40`, backgroundColor: `${color}1A` };
+    const color = categoryColors[category] || '#cbd5e1';
+    return { color: color, borderColor: `${color}60`, backgroundColor: `${color}20` };
   };
 
   const getTabThematicColor = (tabName: string) => {
     if (tabName === 'All') return '#f8fafc';
-    if (tabName === 'Vault') return '#ef4444';
-    return categoryColors[tabName] || '#94a3b8';
+    if (tabName === 'Vault') return '#ff3b3b';
+    return categoryColors[tabName] || '#cbd5e1';
   };
 
   const getTabStyles = (tabName: string) => {
     const color = getTabThematicColor(tabName);
     const isActive = activeTab === tabName;
     if (isActive) {
-      return { color: color, backgroundColor: `${color}1A`, borderColor: `${color}33`, transform: 'scale(1.02)' };
+      return { color: color, backgroundColor: `${color}25`, borderColor: `${color}50`, transform: 'scale(1.02)' };
     }
-    return { color: `${color}80`, borderColor: 'transparent', backgroundColor: 'transparent' };
+    return { color: `${color}90`, borderColor: 'transparent', backgroundColor: 'transparent' };
   };
 
   const renderTab = (tab: { name: string }) => {
@@ -179,7 +179,7 @@ const Playlist: React.FC<PlaylistProps> = ({
         {isDeletable && (
           <button 
             onClick={(e) => { e.stopPropagation(); onRemoveCategory(tab.name); }}
-            className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-red-600 text-white flex items-center justify-center opacity-0 group-hover/tab:opacity-100 transition-opacity z-10 hover:scale-125 shadow-lg border border-white/20 cursor-pointer"
+            className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-red-500 text-white flex items-center justify-center opacity-0 group-hover/tab:opacity-100 transition-opacity z-10 hover:scale-125 shadow-lg border border-white/20 cursor-pointer"
           >
             <i className="fa-solid fa-xmark text-[8px]"></i>
           </button>
@@ -192,8 +192,8 @@ const Playlist: React.FC<PlaylistProps> = ({
     <div className="flex flex-col h-full relative bg-transparent">
       <div className="flex-none pb-4 z-20 px-4 pt-6">
         <div className="flex items-center justify-between mb-4 px-1">
-          <h3 className="text-[10px] font-black text-blue-600 uppercase tracking-[0.2em] flex items-center gap-2">
-            <span className="w-1.5 h-1.5 rounded-full bg-blue-600"></span>
+          <h3 className="text-[10px] font-black text-blue-400 uppercase tracking-[0.2em] flex items-center gap-2">
+            <span className="w-1.5 h-1.5 rounded-full bg-blue-500"></span>
             Library Matrix
           </h3>
           <div className="flex items-center gap-4">
@@ -209,7 +209,7 @@ const Playlist: React.FC<PlaylistProps> = ({
               <button 
                 onClick={() => setShowAddForm(!showAddForm)}
                 className={`w-8 h-8 flex items-center justify-center rounded-lg transition-all border shadow-lg z-30 ${
-                  showAddForm ? 'bg-blue-500/10 text-blue-500 border-blue-500/20 rotate-45' : 'bg-white text-black border-white hover:bg-slate-100'
+                  showAddForm ? 'bg-blue-500/10 text-blue-400 border-blue-500/20 rotate-45' : 'bg-white text-black border-white hover:bg-slate-100'
                 }`}
               >
                 <i className="fa-solid fa-plus text-xs"></i>
@@ -281,52 +281,58 @@ const Playlist: React.FC<PlaylistProps> = ({
             <i className="fa-solid fa-wind text-3xl text-slate-700 mb-6"></i>
             <p className="text-[10px] font-black uppercase tracking-[0.4em] text-slate-700">Archive Depleted</p>
           </div>
-        ) : filteredVideos.map((video) => (
-          <div key={video.id} onClick={() => onSelect(video)} className={`group flex items-center gap-3 p-3 rounded-2xl transition-all cursor-pointer border relative animate-fade-in pr-10 ${currentVideo?.id === video.id ? 'bg-white/5 border-white/10 shadow-lg' : 'bg-transparent border-transparent hover:bg-white/5'}`}>
-            <div className="absolute top-0 bottom-0 right-3 flex flex-col items-center justify-center gap-3 z-30 opacity-0 group-hover:opacity-100 transition-opacity">
-              <button onClick={(e) => { e.stopPropagation(); handleShare(video); }} className={`transition-all hover:scale-125 ${shareSuccessId === video.id ? 'text-green-500' : 'text-slate-600 hover:text-white'}`} data-tooltip="Share Video">
-                <i className={`fa-solid ${shareSuccessId === video.id ? 'fa-check' : 'fa-link'} text-[11px]`}></i>
-              </button>
-              <button onClick={(e) => { e.stopPropagation(); onToggleFavorite(video.id); }} className={`transition-all hover:scale-125 ${userFavorites.includes(video.id) ? 'text-red-500' : 'text-slate-600 hover:text-white'}`}>
-                <i className={`fa-${userFavorites.includes(video.id) ? 'solid' : 'regular'} fa-heart text-[11px] text-red-500`}></i>
-              </button>
-              {isAuthorized && (
-                <button onClick={(e) => { e.stopPropagation(); setConfirmingDeleteId(video.id); }} className="text-red-500 transition-all hover:scale-125" data-tooltip="Purge Video">
-                  <i className="fa-solid fa-trash-can text-[11px]"></i>
+        ) : filteredVideos.map((video) => {
+          const isFavorited = userFavorites.includes(video.id);
+          return (
+            <div key={video.id} onClick={() => onSelect(video)} className={`group flex items-center gap-3 p-3 rounded-2xl transition-all cursor-pointer border relative animate-fade-in pr-10 ${currentVideo?.id === video.id ? 'bg-white/5 border-white/10 shadow-lg' : 'bg-transparent border-transparent hover:bg-white/5'}`}>
+              <div className="absolute top-0 bottom-0 right-3 flex flex-col items-center justify-center gap-3 z-30 opacity-0 group-hover:opacity-100 transition-opacity">
+                <button onClick={(e) => { e.stopPropagation(); handleShare(video); }} className={`transition-all hover:scale-125 ${shareSuccessId === video.id ? 'text-green-500' : 'text-slate-600 hover:text-white'}`} data-tooltip="Share Video">
+                  <i className={`fa-solid ${shareSuccessId === video.id ? 'fa-check' : 'fa-link'} text-[11px]`}></i>
                 </button>
+                <button 
+                  onClick={(e) => { e.stopPropagation(); onToggleFavorite(video.id); }} 
+                  className={`transition-all hover:scale-125 ${isFavorited ? 'text-red-500 scale-110' : 'text-slate-600 hover:text-white'}`}
+                >
+                  <i className={`fa-${isFavorited ? 'solid' : 'regular'} fa-heart text-[11px]`}></i>
+                </button>
+                {isAuthorized && (
+                  <button onClick={(e) => { e.stopPropagation(); setConfirmingDeleteId(video.id); }} className="text-red-500 transition-all hover:scale-125" data-tooltip="Purge Video">
+                    <i className="fa-solid fa-trash-can text-[11px]"></i>
+                  </button>
+                )}
+              </div>
+              {confirmingDeleteId === video.id && isAuthorized && (
+                <div className="absolute inset-0 z-50 bg-black/95 backdrop-blur-md rounded-2xl flex items-center justify-between px-6 border border-red-500/20" onClick={(e) => e.stopPropagation()}>
+                  <span className="text-[10px] font-black text-red-500 uppercase tracking-widest">Delete Video?</span>
+                  <div className="flex gap-2">
+                    <button onClick={() => setConfirmingDeleteId(null)} className="px-3 py-1 bg-white/5 rounded-lg text-[8px] font-black uppercase text-slate-400">Cancel</button>
+                    <button onClick={(e) => { e.stopPropagation(); onRemove(video.id); setConfirmingDeleteId(null); }} className="px-3 py-1 bg-red-600 text-white rounded-lg text-[8px] font-black uppercase">Destroy</button>
+                  </div>
+                </div>
               )}
-            </div>
-            {confirmingDeleteId === video.id && isAuthorized && (
-              <div className="absolute inset-0 z-50 bg-black/95 backdrop-blur-md rounded-2xl flex items-center justify-between px-6 border border-red-500/20" onClick={(e) => e.stopPropagation()}>
-                <span className="text-[10px] font-black text-red-500 uppercase tracking-widest">Delete Video?</span>
-                <div className="flex gap-2">
-                  <button onClick={() => setConfirmingDeleteId(null)} className="px-3 py-1 bg-white/5 rounded-lg text-[8px] font-black uppercase text-slate-400">Cancel</button>
-                  <button onClick={(e) => { e.stopPropagation(); onRemove(video.id); setConfirmingDeleteId(null); }} className="px-3 py-1 bg-red-600 text-white rounded-lg text-[8px] font-black uppercase">Destroy</button>
+              <div className={`w-24 h-14 rounded-xl bg-slate-900 flex-shrink-0 overflow-hidden relative border ${currentVideo?.id === video.id ? 'border-white/20' : 'border-white/5'}`}>
+                <img src={getThumbnailUrl(video)} className="w-full h-full object-cover grayscale-[0.4] group-hover:grayscale-0 transition-all" alt="" />
+                <div className={`absolute inset-0 flex items-center justify-center ${currentVideo?.id === video.id ? 'bg-white/10' : 'bg-transparent'}`}>
+                  <i className={`fa-solid fa-play text-white text-[10px] ${currentVideo?.id === video.id ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}></i>
                 </div>
               </div>
-            )}
-            <div className={`w-24 h-14 rounded-xl bg-slate-900 flex-shrink-0 overflow-hidden relative border ${currentVideo?.id === video.id ? 'border-white/20' : 'border-white/5'}`}>
-              <img src={getThumbnailUrl(video)} className="w-full h-full object-cover grayscale-[0.4] group-hover:grayscale-0 transition-all" alt="" />
-              <div className={`absolute inset-0 flex items-center justify-center ${currentVideo?.id === video.id ? 'bg-white/10' : 'bg-transparent'}`}>
-                <i className={`fa-solid fa-play text-white text-[10px] ${currentVideo?.id === video.id ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}></i>
-              </div>
-            </div>
-            <div className="flex-1 overflow-hidden flex flex-col justify-center gap-1.5 pr-2">
-              <p className={`text-[14px] font-bold leading-tight truncate text-slate-400 transition-colors duration-300`}>{video.prompt}</p>
-              <div className="flex items-center gap-3 text-[9px] font-black uppercase tracking-widest">
-                <span className="px-1.5 py-0.5 rounded-md border shrink-0" style={getTagStyles(video.category)}>{video.category}</span>
-                <div className="flex items-center gap-1 shrink-0">
-                  <span className="text-orange-500">Views::</span>
-                  <span className="text-white">{formatCount(video.viewCount)}</span>
-                </div>
-                <div className="flex items-center gap-1 shrink-0">
-                  <span className="text-blue-500">Likes::</span>
-                  <span className="text-white">{formatCount(video.likeCount)}</span>
+              <div className="flex-1 overflow-hidden flex flex-col justify-center gap-1.5 pr-2">
+                <p className={`text-[14px] font-bold leading-tight truncate text-slate-400 transition-colors duration-300`}>{video.prompt}</p>
+                <div className="flex items-center gap-3 text-[9px] font-black uppercase tracking-widest">
+                  <span className="px-1.5 py-0.5 rounded-md border shrink-0" style={getTagStyles(video.category)}>{video.category}</span>
+                  <div className="flex items-center gap-1 shrink-0">
+                    <span className="text-orange-500">Views::</span>
+                    <span className="text-white">{formatCount(video.viewCount)}</span>
+                  </div>
+                  <div className="flex items-center gap-1 shrink-0">
+                    <span className="text-blue-500">Likes::</span>
+                    <span className="text-white">{formatCount(video.likeCount)}</span>
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );

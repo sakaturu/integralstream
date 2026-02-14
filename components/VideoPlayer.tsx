@@ -144,8 +144,8 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
       <div className={`absolute top-8 left-8 z-20 flex flex-col gap-4 transition-all duration-700 ease-out ${isHUDVisible ? 'translate-x-0 opacity-100' : '-translate-x-8 opacity-0'}`}>
         <button 
           onClick={(e) => { e.stopPropagation(); onToggleFavorite?.(); }}
-          className={`w-12 h-12 rounded-2xl glass border flex items-center justify-center transition-all hover:scale-105 active:scale-95 ${
-            isFavorite ? 'bg-red-600/20 border-red-500/30 text-red-500 shadow-[0_0_20px_rgba(239,68,68,0.2)]' : 'bg-black/40 border-white/10 text-slate-500 hover:text-white'
+          className={`w-12 h-12 rounded-2xl glass border flex items-center justify-center transition-all hover:scale-110 active:scale-90 ${
+            isFavorite ? 'bg-red-600/30 border-red-500/50 text-red-500 shadow-[0_0_25px_rgba(239,68,68,0.4)]' : 'bg-black/40 border-white/10 text-slate-500 hover:text-white'
           }`}
         >
           <i className={`fa-${isFavorite ? 'solid' : 'regular'} fa-heart text-lg`}></i>
