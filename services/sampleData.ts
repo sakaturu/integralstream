@@ -1,9 +1,9 @@
 import { VideoItem, VideoCategory, Review } from '../types';
 
 /**
- * LIBRARY_VERSION 4220: Stats Reset Update.
+ * LIBRARY_VERSION 4221: Added SHAWN hardcoded favorites.
  */
-export const LIBRARY_VERSION = 4220;
+export const LIBRARY_VERSION = 4221;
 
 /**
  * MASTER_IDENTITY: The hardcoded default user for this build.
@@ -11,7 +11,7 @@ export const LIBRARY_VERSION = 4220;
 export const MASTER_IDENTITY = "NEURAL_NODE_01";
 
 /**
- * HARDCODED_FAVORITES: Default vault items for the master identity.
+ * HARDCODED_FAVORITES: Default vault items for specific identities.
  * These will persist even after browser cache/data is cleared.
  */
 export const HARDCODED_FAVORITES: Record<string, string[]> = {
@@ -19,6 +19,13 @@ export const HARDCODED_FAVORITES: Record<string, string[]> = {
     "v-int-001", // Tree of Life
     "v-permia-001", // Dome Architecture
     "v-env-001" // Heal the Earth
+  ],
+  "SHAWN": [
+    "v-int-001", // Tree of Life
+    "v-int-005", // Personal Soak Area
+    "v-permia-001", // Dome Architecture
+    "v-env-001", // Heal the Earth
+    "v-span-001" // Meditación Guiada
   ]
 };
 

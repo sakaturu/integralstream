@@ -288,10 +288,10 @@ const Playlist: React.FC<PlaylistProps> = ({
                 <i className={`fa-solid ${shareSuccessId === video.id ? 'fa-check' : 'fa-link'} text-[11px]`}></i>
               </button>
               <button onClick={(e) => { e.stopPropagation(); onToggleFavorite(video.id); }} className={`transition-all hover:scale-125 ${userFavorites.includes(video.id) ? 'text-red-500' : 'text-slate-600 hover:text-white'}`}>
-                <i className={`fa-${userFavorites.includes(video.id) ? 'solid' : 'regular'} fa-heart text-[11px]`}></i>
+                <i className={`fa-${userFavorites.includes(video.id) ? 'solid' : 'regular'} fa-heart text-[11px] text-red-500`}></i>
               </button>
               {isAuthorized && (
-                <button onClick={(e) => { e.stopPropagation(); setConfirmingDeleteId(video.id); }} className="text-slate-600 hover:text-red-500 transition-all hover:scale-125" data-tooltip="Purge Video">
+                <button onClick={(e) => { e.stopPropagation(); setConfirmingDeleteId(video.id); }} className="text-red-500 transition-all hover:scale-125" data-tooltip="Purge Video">
                   <i className="fa-solid fa-trash-can text-[11px]"></i>
                 </button>
               )}

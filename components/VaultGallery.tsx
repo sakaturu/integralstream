@@ -126,7 +126,7 @@ const VaultGallery: React.FC<VaultGalleryProps> = ({
                   <div className="absolute top-0 bottom-0 right-3 py-3 flex flex-col items-center justify-center z-30 opacity-30 group-hover:opacity-100 transition-opacity">
                     <button 
                       onClick={(e) => { e.stopPropagation(); setConfirmingDeleteId(video.id); }} 
-                      className="text-slate-400 hover:text-red-500 transition-all hover:scale-125 active:scale-90"
+                      className="text-red-500 transition-all hover:scale-125 active:scale-90"
                     >
                       <i className="fa-solid fa-xmark text-[13px]"></i>
                     </button>
