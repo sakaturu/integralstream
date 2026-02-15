@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { VideoItem, VideoCategory } from './types';
 import VideoPlayer from './components/VideoPlayer';
@@ -14,10 +13,10 @@ const VERSION_KEY = `integral_version_v${LIBRARY_VERSION}`;
 const AUTH_KEY = 'integral_v411_auth';
 const CAT_KEY = `integral_categories_v${LIBRARY_VERSION}`;
 const CAT_COLORS_KEY = `integral_cat_colors_v${LIBRARY_VERSION}`;
-const USER_KEY = 'integral_active_user_v5'; 
-const USER_LOCKED_KEY = 'integral_user_locked_v5';
+const USER_KEY = 'integral_active_user_v6'; 
+const USER_LOCKED_KEY = 'integral_user_locked_v6';
 const USER_NODE_ID_KEY = 'integral_user_node_id';
-const FAV_MAP_KEY = 'integral_user_fav_map';
+const FAV_MAP_KEY = 'integral_user_fav_map_v2';
 const ADMIN_PASSWORD = 'ADMIN';
 
 const generateNodeId = () => {
@@ -41,16 +40,15 @@ const DEFAULT_CATEGORIES: VideoCategory[] = [
   'Other'
 ];
 
-// Brighter "Neon" Default Palette
 const DEFAULT_CAT_COLORS: Record<string, string> = {
-  'Meditation': '#10b981', // Neon Emerald
-  'Tribal': '#f97316',     // Bright Orange
-  'Dance': '#d946ef',     // Electric Magenta
-  'Integral Serenity': '#3b82f6', // Laser Blue
-  'Permia Community': '#fbbf24', // Solar Yellow
-  'Spanish': '#8b5cf6',   // Bright Purple
-  'Fav. Pick': '#ec4899', // Hot Pink
-  'Environment': '#22c55e', // Neon Green
+  'Meditation': '#10b981', 
+  'Tribal': '#f97316',     
+  'Dance': '#d946ef',     
+  'Integral Serenity': '#3b82f6', 
+  'Permia Community': '#fbbf24', 
+  'Spanish': '#8b5cf6',   
+  'Fav. Pick': '#ec4899', 
+  'Environment': '#22c55e', 
   'Other': '#94a3b8'
 };
 
@@ -86,9 +84,14 @@ const App: React.FC = () => {
     return newId;
   });
 
+  // SMART INITIALIZATION: Merge Local Storage map with Hardcoded map
   const [userFavMap, setUserFavMap] = useState<Record<string, string[]>>(() => {
     const saved = localStorage.getItem(FAV_MAP_KEY);
-    return saved ? JSON.parse(saved) : HARDCODED_FAVORITES;
+    const localMap = saved ? JSON.parse(saved) : {};
+    
+    // Merge hardcoded favorites into the map for keys that don't exist locally
+    const mergedMap = { ...HARDCODED_FAVORITES, ...localMap };
+    return mergedMap;
   });
 
   const [showLoginOverlay, setShowLoginOverlay] = useState(() => !localStorage.getItem(USER_KEY));
@@ -159,7 +162,15 @@ const App: React.FC = () => {
 
   const triggerReload = useCallback(() => { window.location.reload(); }, []);
   const triggerSyncSequence = useCallback(() => { setIsSyncingLive(true); setTimeout(triggerReload, 1500); }, [triggerReload]);
-  const handleHardSyncSource = useCallback(() => { setIsSyncingLive(true); localStorage.removeItem(DATA_KEY); localStorage.removeItem(CAT_KEY); localStorage.removeItem(CAT_COLORS_KEY); localStorage.removeItem(VERSION_KEY); localStorage.removeItem(FAV_MAP_KEY); setTimeout(triggerReload, 2000); }, [triggerReload]);
+  const handleHardSyncSource = useCallback(() => { 
+    setIsSyncingLive(true); 
+    localStorage.removeItem(DATA_KEY); 
+    localStorage.removeItem(CAT_KEY); 
+    localStorage.removeItem(CAT_COLORS_KEY); 
+    localStorage.removeItem(VERSION_KEY); 
+    localStorage.removeItem(FAV_MAP_KEY); 
+    setTimeout(triggerReload, 2000); 
+  }, [triggerReload]);
 
   const checkVersion = useCallback(async (manual = false) => {
     if (checkSyncLock.current) return;
@@ -232,10 +243,8 @@ const App: React.FC = () => {
   }, [videos, isAuthorized, categories, categoryColors]);
 
   const currentUserFavorites = useMemo(() => userFavMap[currentUser] || [], [userFavMap, currentUser]);
-  const vaultCount = useMemo(() => vaultCountCount(currentUserFavorites), [currentUserFavorites]);
-  function vaultCountCount(favs: string[]) { return favs.length; }
+  const vaultCount = useMemo(() => currentUserFavorites.length, [currentUserFavorites]);
 
-  // FIX: Calculate pendingReviewsCount to resolve the reference error in the header
   const pendingReviewsCount = useMemo(() => {
     return videos.reduce((acc, video) => {
       return acc + (video.reviews?.filter(r => !r.isApproved).length || 0);
@@ -270,8 +279,15 @@ const App: React.FC = () => {
     setUserFavMap(prev => {
       const userFavs = prev[currentUser] || [];
       const isAlreadyFav = userFavs.includes(id);
-      const updatedFavs = isAlreadyFav ? userFavs.filter(fid => fid !== id) : [...userFavs, id];
-      return { ...prev, [currentUser]: updatedFavs };
+      const updatedFavs = isAlreadyFav 
+        ? userFavs.filter(fid => fid !== id) 
+        : [...userFavs, id];
+      
+      // Explicitly return a new object to trigger re-renders
+      return { 
+        ...prev, 
+        [currentUser]: updatedFavs 
+      };
     });
   }, [currentUser]);
 

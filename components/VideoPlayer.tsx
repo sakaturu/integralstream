@@ -145,10 +145,10 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
         <button 
           onClick={(e) => { e.stopPropagation(); onToggleFavorite?.(); }}
           className={`w-12 h-12 rounded-2xl glass border flex items-center justify-center transition-all hover:scale-110 active:scale-90 ${
-            isFavorite ? 'bg-red-600/40 border-red-500/60 text-[#ff3b3b] shadow-[0_0_25px_rgba(255,59,59,0.5)]' : 'bg-black/40 border-white/10 text-slate-500 hover:text-white'
+            isFavorite ? 'bg-red-600/40 border-red-500/60 text-[#ff3b3b] shadow-[0_0_30px_rgba(255,59,59,0.7)]' : 'bg-black/40 border-white/10 text-slate-500 hover:text-white'
           }`}
         >
-          <i className={`fa-${isFavorite ? 'solid' : 'regular'} fa-heart text-lg`}></i>
+          <i className={`fa-${isFavorite ? 'solid' : 'regular'} fa-heart text-lg drop-shadow-[0_0_2px_rgba(0,0,0,0.5)]`}></i>
         </button>
       </div>
 

@@ -20,7 +20,7 @@ interface ModerationPanelProps {
   onCheckVersion: () => void;
   onHardSync: () => void;
   currentUser: string;
-  userFavMap: Record<string, string[]>; // Accepts the full map for global persistence
+  userFavMap: Record<string, string[]>;
 }
 
 interface PendingReview extends Review {
@@ -36,10 +36,8 @@ const ModerationPanel: React.FC<ModerationPanelProps> = ({
   onAddVideo,
   onRemoveVideo,
   onClose,
-  onSimulateSync,
   isCheckingSync,
   cloudVersion,
-  onCheckVersion,
   onHardSync,
   currentUser,
   userFavMap
@@ -104,7 +102,8 @@ export const LIBRARY_VERSION = ${LIBRARY_VERSION};
 export const MASTER_IDENTITY = "${currentUser}";
 
 /**
- * HARDCODED_FAVORITES: Captures ALL user vaults for hardcoded persistence.
+ * HARDCODED_FAVORITES: Captures ALL user vaults (including SHAWN and NEURAL_NODE_01)
+ * This ensures favorites are permanent for specific identities across reloads.
  */
 export const HARDCODED_FAVORITES: Record<string, string[]> = ${JSON.stringify(userFavMap, null, 2)};
 
@@ -151,10 +150,8 @@ export const getSurpriseVideo = (): VideoItem => {
   const handleCopyCode = () => {
     navigator.clipboard.writeText(generatedCode);
     setCopySuccess(true);
-    setTimeout(() => setCopyFeedback(false), 2000);
+    setTimeout(() => setCopySuccess(false), 2000);
   };
-
-  const setCopyFeedback = (val: boolean) => setCopySuccess(val);
 
   const handleTriggerHardSync = () => {
     setIsSyncing(true);
@@ -171,7 +168,7 @@ export const getSurpriseVideo = (): VideoItem => {
             </div>
             <div>
               <h2 className="text-[12px] font-black text-white uppercase tracking-tighter">Terminal Console</h2>
-              <p className="text-[8px] font-bold text-slate-500 uppercase tracking-widest mt-0.5">Matrix Management</p>
+              <p className="text-[8px] font-bold text-slate-500 uppercase tracking-widest mt-0.5">Neural Management Interface</p>
             </div>
           </div>
           
@@ -247,9 +244,9 @@ export const getSurpriseVideo = (): VideoItem => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                  <div className="p-6 rounded-3xl bg-blue-600/5 border border-blue-500/20 flex flex-col justify-between">
                     <div>
-                      <h4 className="text-[11px] font-black text-white uppercase tracking-widest mb-1 flex items-center gap-2"><i className="fa-solid fa-cloud-arrow-down text-blue-500"></i>PULL: Get GitHub Data</h4>
-                      <p className="text-[8px] text-slate-500 uppercase font-bold mb-6">Reset Browser to Source Code</p>
-                      <p className="text-[9px] text-slate-400 leading-relaxed uppercase font-bold mb-6">Use this if you edited <span className="text-blue-400">sampleData.ts</span> on your Hard Drive and pushed to GitHub. It wipes local overrides.</p>
+                      <h4 className="text-[11px] font-black text-white uppercase tracking-widest mb-1 flex items-center gap-2"><i className="fa-solid fa-cloud-arrow-down text-blue-500"></i>PULL: Restore Source</h4>
+                      <p className="text-[8px] text-slate-500 uppercase font-bold mb-6">Wipe Local Changes & Reload</p>
+                      <p className="text-[9px] text-slate-400 leading-relaxed uppercase font-bold mb-6">Reset everything back to the hardcoded `sampleData.ts`. Use this if you pushed new code to GitHub.</p>
                     </div>
                     <button 
                       onClick={handleTriggerHardSync} 
@@ -262,31 +259,31 @@ export const getSurpriseVideo = (): VideoItem => {
                  </div>
                  
                  <div className="p-6 rounded-3xl bg-purple-600/5 border border-purple-500/20 flex flex-col">
-                    <h4 className="text-[11px] font-black text-white uppercase tracking-widest mb-1 flex items-center gap-2"><i className="fa-solid fa-cloud-arrow-up text-purple-500"></i>PUSH: Save Identity & Data</h4>
-                    <p className="text-[8px] text-slate-500 uppercase font-bold mb-6">Update Repository from Browser</p>
+                    <h4 className="text-[11px] font-black text-white uppercase tracking-widest mb-1 flex items-center gap-2"><i className="fa-solid fa-cloud-arrow-up text-purple-500"></i>PUSH: Commit Favorites</h4>
+                    <p className="text-[8px] text-slate-500 uppercase font-bold mb-6">Make Personas Permanent</p>
                     <div className="space-y-4 text-[9px] text-slate-400 font-bold uppercase leading-tight">
-                       <div className="flex gap-3 items-start"><span className="w-5 h-5 shrink-0 bg-purple-500/20 rounded-full flex items-center justify-center text-purple-500">1</span><span>Copy code below (includes current name: <b>{currentUser}</b>)</span></div>
-                       <div className="flex gap-3 items-start"><span className="w-5 h-5 shrink-0 bg-purple-500/20 rounded-full flex items-center justify-center text-purple-500">2</span><span>Open <span className="text-purple-400">sampleData.ts</span> on your machine</span></div>
-                       <div className="flex gap-3 items-start"><span className="w-5 h-5 shrink-0 bg-purple-500/20 rounded-full flex items-center justify-center text-purple-500">3</span><span>Paste and Replace the content</span></div>
-                       <div className="flex gap-3 items-start"><span className="w-5 h-5 shrink-0 bg-purple-500/20 rounded-full flex items-center justify-center text-purple-500">4</span><span>Push to Vercel/GitHub to save "Online"</span></div>
+                       <div className="flex gap-3 items-start"><span className="w-5 h-5 shrink-0 bg-purple-500/20 rounded-full flex items-center justify-center text-purple-500 font-black">1</span><span>The snapshot below includes all vaults for: <b>{Object.keys(userFavMap).join(', ')}</b></span></div>
+                       <div className="flex gap-3 items-start"><span className="w-5 h-5 shrink-0 bg-purple-500/20 rounded-full flex items-center justify-center text-purple-500 font-black">2</span><span>Open <span className="text-purple-400">sampleData.ts</span> on your machine</span></div>
+                       <div className="flex gap-3 items-start"><span className="w-5 h-5 shrink-0 bg-purple-500/20 rounded-full flex items-center justify-center text-purple-500 font-black">3</span><span>Replace all content with code below</span></div>
+                       <div className="flex gap-3 items-start"><span className="w-5 h-5 shrink-0 bg-purple-500/20 rounded-full flex items-center justify-center text-purple-500 font-black">4</span><span>Push to GitHub to lock in SHAWN's vault</span></div>
                     </div>
                  </div>
               </div>
 
               <div className="p-6 rounded-3xl bg-slate-950 border border-white/10">
                 <div className="flex items-center justify-between mb-4">
-                  <h4 className="text-[10px] font-black text-white uppercase tracking-widest">Source Code Snapshot</h4>
+                  <h4 className="text-[10px] font-black text-white uppercase tracking-widest">Master Data Commit</h4>
                   <button onClick={handleCopyCode} className={`px-4 py-2 rounded-xl text-[9px] font-black uppercase transition-all flex items-center gap-2 ${copySuccess ? 'bg-green-600 text-white' : 'bg-white/10 text-white hover:bg-white/20'}`}>
                     <i className={`fa-solid ${copySuccess ? 'fa-check' : 'fa-copy'}`}></i>
                     {copySuccess ? 'Copied to Clipboard!' : 'Copy Code'}
                   </button>
                 </div>
-                <pre className="p-6 overflow-x-auto text-[10px] text-blue-400 font-mono bg-black/50 rounded-2xl max-h-[300px] border border-white/5"><code>{generatedCode}</code></pre>
+                <pre className="p-6 overflow-x-auto text-[10px] text-blue-400 font-mono bg-black/50 rounded-2xl max-h-[300px] border border-white/5 shadow-inner"><code>{generatedCode}</code></pre>
               </div>
 
               <div className="grid grid-cols-2 gap-4">
-                 <div className="flex justify-between items-center text-[9px] font-black uppercase tracking-widest border-b border-white/5 pb-2 text-slate-500">Local: v{LIBRARY_VERSION}</div>
-                 <div className="flex justify-between items-center text-[9px] font-black uppercase tracking-widest border-b border-white/5 pb-2 text-emerald-400">Cloud: v{cloudVersion}</div>
+                 <div className="flex justify-between items-center text-[9px] font-black uppercase tracking-widest border-b border-white/5 pb-2 text-slate-500">Local Matrix: v{LIBRARY_VERSION}</div>
+                 <div className="flex justify-between items-center text-[9px] font-black uppercase tracking-widest border-b border-white/5 pb-2 text-emerald-400">Cloud Node: v{cloudVersion}</div>
               </div>
             </div>
           )}
